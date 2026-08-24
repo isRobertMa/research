@@ -1,0 +1,611 @@
+---
+output: 
+  pdf_document:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: pdflatex
+    template: svm-latex-ms.tex
+title: "Introduction to Brownian motion and its application for modeling Stock and Option prices in the financial market."
+
+author:
+- name: Arlyn Chavarria Toruno, Hanshuo Ma, Zhirui Chu
+
+abstract: "Introduction to Brownian motion, Brownian motion's property, Ito's calculus (Stochastic calculus), Stcohastic Differential Equations, Geometric Brownian motion and Black-Scholes Model with respective applications in R."
+
+keywords: "pandoc, r markdown, knitr"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+
+geometry: margin=1in
+fontfamily: mathpazo
+fontsize: 11pt
+# spacing: double
+
+biblio-style: apsr
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```                                    
+```{r Library Calls, include=FALSE}
+library(ggplot2)
+library(tinytex)
+library(knitr)
+library(ggplot2)
+library(tidyverse)
+library("ggpubr")
+```
+# 1.0 Introduction to Brownian Motion
+
+  The original definition of Brownian motion describes the random motion of particles suspended in a medium, such as a single dust particle's movement in the 3-dimensional space of gas. This phenomenon is named after the Scottish botanist Robert Brown for discovering through a microscope at pollen of a plant immersed in water. It's a real-valued continuous-time stochastic process, in this project, we will be focusing mainly on the property of one-dimensional Brownian motion and its application in the Financial market to model stock prices. The one-dimensional Brownian motion is also known as the Wiener process, and we will be mainly focusing on one-dimensional Brownian motion in this project because stock prices can only go up and go down in a continuous-time random walk process. 
+
+![Brownian Motion in predicting asset's prices](IntroBM.png){width=70%}
+
+## 2.0 Brownian Motion Definition and Basic Property
+
+  Let ($\Omega, \mathcal F, \mathbb{P}$) be a probability space and let $\{\mathcal F_{t}\}$ be a filtration, not necessarily satisfying the usual conditions. Definition: Let $W_{t} = W_{t}(\omega)$ be a one-dimensional Brownian motion with respect to $\{\mathcal F_{t}\}$ and the probability measure $\mathbb{P}$, started at 0 if:
+$$
+\begin{aligned}
+&(1)W_{t} \textrm{ is } \mathcal F_{t} \textrm{ measurable for each } t \geq 0. \\
+&(2)W_{0} = 0. \\
+&(3)W_{t} - W_{s} \textrm{ is a random variable that follows a normal distribution with mean 0 and variance } t - s. \\
+&\textrm{ whenever } t \geq s. W_{t} - W_{s} \sim \mathcal {N}(0, t - s).\\
+&(4)W_{t} \textrm{ has independent increments: for every } t > 0, \textrm{ the future increments }W_{t+u} - W_{s+u}, t \geq s. \\
+&\textrm{ are independent of the past increments values } W_{t} - W_{s}, t \geq s  \\
+&(5)W_{t} \textrm{ has continuous paths}. 
+\end{aligned}
+$$
+There are also multiple propositions that use a Brownian motion and yields a new Brownian motion^[Appendix 1.1]. 
+
+## 2.1 Ito's formula and Ito process 
+We know that Brownian motion are not differentiable, therefore we cannot use calculus rules. Instead, we use Ito Integral, also called the stochastic integral with respect to the Brownian motion:
+$$
+\begin{aligned}
+\int_{0}^{t}\sigma_{u}dW_{u}
+\end{aligned}
+$$
+Where $\sigma$ is the stochastic process. $\sigma$ can depend on the past history of $W_{u}$ but it cannot depend on the future. Ito's formula also known as *change of variable* formula, is an important result in the theory of stochastic integration. 
+
+**Theorem 1:** Let $X_t$ be a semi martingale with continuous path and suppose $f \in C^2$. Then for almost every $\omega$ 
+$$f(X_t) = f(X_0) + \int^t_0 f'(X_s)dX_s + \frac{1}{2}\int^t_0f''(X_s)d \langle X \rangle_s, t \geq 0$$
+
+**Theorem 2:** Suppose $X_t^1,...X^d_t$ are continuous semi martingales, $X_t = (X^1_t,...X^d_t), \textrm{ and } f \textrm{ is a } C^2 \textrm{ function on } \mathbb{R}^d$. Then with probability one, 
+$$f(X_t) = f(X_0) + \int^t_0\sum^d_{i=1}\frac{\partial f}{\partial x_i}(X_s)dX_s^i + \frac{1}{2}\int^t_0\sum^d_{i,j=1}\frac{\partial^2 f}{\partial x_i \partial x_j}(X_s)d(X^i,X^j)_s, \textrm{for all t} \geq 0.$$
+
+# 3.0 Financial application 
+
+## 3.1 Stochastic differential equation
+
+Stochastic differential equations are used in modeling a wide variety of physical and economic situations. Especially in Mathematical finance it's the corner stone of stock/bond price modelling, and options price modeling, and most importantly calculating the implied volitility of the current option prices. 
+
+We consider stochastic differential equations (SDEs) of the form:
+
+$$ dX_{t} = \sigma(X_t)dW_t + b(X_t)dt$$
+
+where $\sigma$ and $b$ are real-valued functions and $W$ is a one-dimensional Brownian motion. In a complete financial market, at each specific time where there will be multiple possible states of the return of each security. Hence we could consider the high-dimensional Brownian motion where $W_t$ represent not only one real value, but a vector of all possible real value of the Brownian motion $W_t = (W^1_t, ..., W^n_t)$, where $W_t$ will be a $n$-dimensional Brownian motion. 
+
+Here, $b(X_t)$ or often written as $\mu X_t$, is called the instantaneous drift of $X_t$ at time $t$. And $\sigma(X_t)$ is called instantaneous volatility or the diffusion coefficient of the $X_t$ at time $t$. In the financial market, both of these constants are great parameters for interpretation and modelling, the drift will capture the trend of the security, is the majority of market selling or buying during the motion? The volatility explain the potential risk involved, and the unpredictable events that occurred during the motion. In another word, the drift captures the expected change of the Brownian motion $W_t$ between $t$ and $t +dt$ and the volatility captures the unexpected stochastic component of the change of the Brownian motion $W_t$ between $t$ and $t + dt$.
+
+Let $W_t$ be a one-dimensional Brownian motion with respect to a filtration $\mathcal \{F_{t}\}$ satisfying the usual conditions. We want to consider SDEs of the form
+
+$$ dX_{t} = \sigma(X_t)dW_t + b(X_t)dt, X_0 = x_0$$
+
+This means that $X_t$ satisfies the equation 
+
+$$X_t = x_0 + \int^t_0 \sigma(X_s)dW_s + \int^t_0b(X_s)ds, t \geq 0$$
+
+The above one-dimensional SDEs are composed for simplicity, the same arguments apply when we have a higher-dimensional SDEs. Let 
+
+$$W_t = (W^1_t,...W^d_t)$$ 
+
+be a d-dimensional Brownian motion, let $\sigma_{ij}(x)$ be bounded Lipschitz functions for$i = 1,..., n$ and $j = 1,...,d$ and let $b_i(x)$ be bounded Lipschitz functions for $i = 1,..., n$. Consider the system of equations 
+
+$$dX_t^i = \sum^d_{j=1}\sigma_{ij}(X_t)dW_t^j + b_i(X_t)dt, i = 1,...,n.$$
+
+This can be written in matrix form 
+
+$$dX_t = \sigma(X_t)dW_t + b(X_t)dt$$
+
+where $X = (X^1,...,X^n)$ as a $n \times 1$ matrix, $b = (b_1,...,b_n)$ as a $n \times 1$ matrix valued function, $W$ as a $d \times 1$ matrix, and $\sigma$ as a $n \times d$ matrix-valued function. 
+
+## 3.2 Geometric Brownian motion
+
+We all know stocks and bonds in a financial market. A stock is the firm selling a part of its shares to the general public for equity, usually purchasing stocks are buyers entering a long position, aiming for turning a profit as the company continue to grow. Market could also short sell a stock, borrow a share and sell it immediately at market price for equity and if the company didn't do too well in the future, buy back one share at a less price to cover the short position and make a profit. Bonds will exhibit similar change of prices as stocks does, even though the coupon rate of a Bond will stays the same throughout the duration of the bond. Change in monetary policy such as open market purchase over-night rate change will drastically change the bond prices as much change of interest rates. Here with majority of the financial securities being subject to a continuous change in prices, naturally we will have investors to speculate these assets and securities, and the instruments they used to spectate. 
+
+One of the tools most investors use is Option. Options in the financial world are generally defined as a contract between two parties in which one party has the right but not the obligation to do something, usually to buy or sell some underlying assets A put option gives the buyer the right to exercise the contract and sell the assets at certain strike price, and a call option gives the buyer the right to exercise the contract and buy the assets at certain strike price. If the strike price of the option doesn't make a profit with the current price of assets, the buyer can always choose to let the option expire worthless and only lose the initial price they paid for the option contract. There are two types of options, American and European options, the American ones can be exercised before the expiration date, and the European ones can only be exercised at expiration date, in the Black-Scholes formula we will mainly be dealing with European call option. 
+
+Let $W_t$ be a Brownian motion. We assume that $S_t$ is the price of a stock or other risky security. If we have $2,000 and we buy 100 shares in a stock that sells for $20 per share and it goes up $2, or if we buy 10 shares in a stock selling for $200 per share that goes up $20, we are equally happy; it is the percentage increase that matters. With this in mind, we assume that $S_t$ satisfies 
+
+$$dS_t = \mu S_tdt + \sigma S_tdW_t.$$
+
+Because we emphasis on the percentage change of the stock prices, the **relative** change in price, we can show 
+
+$$dS_t/S_t = \mu dt + \sigma dW_t$$ 
+
+That the relative change in prices is a multiple of Brownian motion with a drift. The quantity $\mu$ is known as the mean rate of return and $\sigma$ is called the volatility. The solution to this SDE is 
+
+$$S_t = S_0e^{\sigma W_t + (\mu-(\sigma^2/2))t}$$ by proposition 24.6^[Proper Proof in Appendix 1.2].
+
+## 3.3 Black-Scholes formula 
+
+For the European call option, we define the pay off C with strike price K and expiration date T. If the current asset price is greater than the strike price, $S_T \geq K$ the buyer can always exercise the option the obtain a positive pay off, if the current price is lower than the strike price, then buyer will not exercise the option and take 0 payoff. There fore we have pay off statement, such that 
+
+$$
+C(S, T) = (S_T - K)^+ = max(S_T-K,0)
+$$
+The Black–Scholes formula calculates the price of European put and call options, or the valuation of how much would an investor pay for such options. Assumptions of the Black & Scholes Model:
+$$
+\begin{aligned}
+& (1)\textrm{The stock pays no dividends during the option’s life.}\\
+& (2)\textrm{The Option is European and can only be exercised at expiration.}\\
+& (3)\textrm{The risk-free rate and volatility of the underlying asset are known and constant.} \\
+& (4)\textrm{The market is efficient with symmetric information.}\\
+& (5)\textrm{The returns of the underlying asset are normally distributed.}\\
+& (6)\textrm{There are no transaction costs in buying the option.} 
+\end{aligned}
+$$
+The value of a call option for a non-dividend-paying underlying stock with expatriation T in terms of the Black–Scholes parameters is: 
+
+$$
+C(S_{t},t) = S_{t}N(d_{1})-Ke^{-r(T-t))}N(d_{2})\\
+where \;\; N(d) = \frac{1}{\sqrt{2\pi}}\int^d_{-\infty}e^{-\frac{1}{2}s^2}ds$$
+
+Where N(d) is the cumulative distribution function of the standard normal distribution. And $C(S_t, t)$ is defined with the follwoing notation: 
+
+$$
+\begin{aligned}
+& S_t :\textrm{Price of the asset at time } t\\
+& t: \textrm{Current time }t\\
+& T: \textrm{Expiration time of the option} \\
+& K: \textrm{Strike price of the option}\\
+& r: \textrm{The risk-free rate}\\
+& \sigma: \textrm{Volatility} 
+\end{aligned}
+$$
+
+
+$$d_{1} = \frac{\log(\frac{S_{t}}{K})+(r+\frac{1}{2}\sigma^{2}(T-t))}{\sigma\sqrt{T-t}}$$
+$$d_{2}=d_{1} - \sigma\sqrt{T-t}$$
+
+# 4.0 Application of the models in R code 
+## 4.1 Geometric Brownian motion 
+
+Here we'll be solving a simple stock price geometric Brownian motion model using Stochastic Differential Equation. The reason this is only a simple representation of the reality, is that here we are using constant volatility. In the real world the volatility of the stock market change constantly and is very sensitive to policy change or breaking news. We choose S&P500 as our example here since it capture the movement of the stock market as a whole, and thus this index's geometric Brownian motion model will reflect the U.S. economy as a whole. After we applied the Geometric Brownian motion simulation, we could estimate the distribution of future prices at certain point in the future. 
+
+We also obtained the data of the daily closing price of S&P500 in the past 5 years, in a total of 1257 trading days, we calculated the daily return and take a look at mean and standard deviation of the returns, this will be our initial drift and volatility of the index. The returns are calculated in both ways - simple return and continuous compounded return, we shown in the graph below that these two are mostly the same thing, in mathematical finance calculations mostly using continuous compounded return, that's what we will be using in this model. 
+
+```{r spx, echo=FALSE, warning=FALSE, message=FALSE}
+data <- read.csv("spx.csv")
+close_price <- rev(data$Close.Last)
+df <- data.frame(close_price)
+
+x <- seq(0,1256)
+
+par(mfrow=c(1,3))
+
+ap <- ggplot(data = df, aes(x=x, y = close_price)) + 
+  geom_line() +
+  geom_smooth(method="lm", color = "green",lwd = .5, span = 0.8)+
+  geom_smooth(method="glm", method.args=list(family=gaussian(link="log")), color = "coral1") +
+  labs(title = "Daily closing price of S&P500", x ="Days", y = "Prices")
+
+sp500_prices <- data[, "Close.Last", drop = FALSE]
+# Denote n the number of time periods:
+n <- nrow(sp500_prices);
+sp500_ret <- ((sp500_prices[2:n, 1] - sp500_prices[1:(n-1), 1])/sp500_prices[1:(n-1), 1])
+# Now add dates as names to the vector and print the first elements of 
+# sp500_ret to the console to check
+names(sp500_ret) <- data[2:n, 1]
+
+# Denote n the number of time periods:
+n <- nrow(sp500_prices)
+sp500_ret <- ((sp500_prices[2:n, 1] - sp500_prices[1:(n-1), 1])/sp500_prices[1:(n-1), 1])
+
+# Compute continuously compounded 1-month returns
+sp500_ccret <- log(sp500_prices[2:n, 1]) - log(sp500_prices[1:(n-1), 1])
+
+df_ret <- data.frame(sp500_ccret, sp500_ret)
+names(df_ret) = c("Continuous Compounded", "Simple")
+
+bp <- ggplot(data=df_ret, aes(x=seq(1,1256),y=`Continuous Compounded`)) +
+  geom_line()+
+  labs(title = "S&P 500 Daily return: continuous compounded",
+       subtitle = "End of Day Prices",
+       caption = " Source: Nasdaq") +
+  xlab("Date") + ylab("Price") +
+  scale_color_manual(values = c("DarkBlue"))
+
+cp <- ggplot(data=df_ret, aes(x=seq(1,1256),y=`Simple`)) +
+  geom_line()+
+  labs(title = "S&P 500 Daily return: Simple",
+       subtitle = "End of Day Prices",
+       caption = " Source: Nasdaq") +
+  xlab("Date") + ylab("Price") +
+  scale_color_manual(values = c("Orange"))
+
+figure <- ggarrange(ap,               
+  # First row with line plot
+  # Second row with the return line plots
+  ggarrange(bp, cp, ncol = 2, labels = c("B", "C")), 
+  nrow = 2, 
+  labels = "A"       # Label of the line plot
+  ) 
+figure
+
+```
+Now we will be looking at the the application of Geometric Brownian Motion model. For representation purposes, we will only run the simulation for 200 times to graph the price path, however, during the actual simulation we will be running the simulation 200,000 times in order to obtain a log-normally distributed prices with obtained initial drift and volatility from above($\mu = 0, \sigma = 0.0137$) with the model initial price at $S_0 = 4454.89$.
+
+```{r gbm, echo =FALSE}
+
+# Vectorised approach to GBM simulation
+gbm_vec <- function(nsim = 100, t = 25, mu = 0, sigma = 0.1, S0 = 100, dt = 1./365) {
+  
+  # matrix of random draws - one for each day for each simulation
+  epsilon <- matrix(rnorm(t*nsim), ncol = nsim, nrow = t)  
+  
+  # get GBM and convert to price paths
+  gbm <- exp((mu - sigma * sigma / 2) * dt + sigma * epsilon * sqrt(dt))
+  gbm <- apply(rbind(rep(S0, nsim), gbm), 2, cumprod)
+  
+  return(gbm)
+}
+set.seed(1)
+nsim <- 200
+t <- 100
+mu <- 0
+sigma <- 0.01367511
+S0 <- 4554.89
+
+gbm <- gbm_vec(nsim, t, mu, sigma, S0)
+
+gbm_df <- as.data.frame(gbm) %>%
+  mutate(ix = 1:nrow(gbm)) %>%
+  pivot_longer(-ix, names_to = 'sim', values_to = 'price')
+
+gbm_p <- ggplot(data = gbm_df, aes(x=ix, y=price, color=sim)) +
+       geom_line() +
+       theme(legend.position = 'none')
+
+# start <- Sys.time()
+gbm <- gbm_vec(nsim = 200000, t, mu, sigma, S0)
+# Sys.time() - start
+
+price = data.frame(price = gbm[t, ])
+price_p <-
+  ggplot(data = price, aes(x = price)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.1) +
+  geom_density() + 
+  ggtitle('terminal price distribution')
+
+D <- gbm[t, ] %>%
+  density()
+
+strike = 4600
+
+profile <- tibble(
+  price = D$x, 
+  value = case_when(price <= strike ~ 0, TRUE ~ price - strike)
+)
+
+# dataframe of payoffs and probabilities 
+prob_wieghted_payoff_profile <- profile %>%
+  mutate(density = D$y/sum(D$y)) 
+
+payoff_profile_p <-
+  ggplot(data = prob_wieghted_payoff_profile, aes(x = price, y = value*density)) +
+  geom_line() +
+  xlab('price') +
+  ylab('probability-weighted payoff')
+
+expected_value <- prob_wieghted_payoff_profile %>%
+  summarise(ev = sum(density * value))
+
+figure <- ggarrange(gbm_p,               
+  # First row with line plot
+  # Second row with the return line plots
+  ggarrange(price_p, payoff_profile_p, ncol = 2, labels = c("E", "F")), 
+  nrow = 2, 
+  labels = "D"       # Label of the line plot
+  ) 
+figure
+expected_value
+```
+Here we can see at terminal price distribution, the estimated distribution of prices is approximately normally distributed after 100 days of the initial price $S_0 = 4454.89$. Therefore, we could use the estimated terminal price distribution to calculate a European call option with strike price $K = 4600$ with expiration date at 100 days, given our Geometric Brownian motion model and ignore stock dividends and interest rate. Here we can see our probability-weighted payoff shows that we will have highest payoff between 4620 and 4630 within 100 days period, any payoff beyond 4700 is merely impossible. With our pay off curve we can calculated the Expected value of the European call option by summing all the area under the curve, which is 1.26. Which is a very good investment considering the low volatility of the S&P500.
+
+## 4.2 Black Scholes Option pricing R code 
+
+Again, we use the above S&P500 data for our Option pricing model. We define a 
+Black-Scholes model that takes in the current prices of S&P500 at $4454.89$, with
+risk-free rate at $r = 0.055$ and volatility at $\sigma = 0.01367511$, we are 
+interested in the performance of the stock after 100 days, therefore here the 
+expiration time is $T = \frac{3}{12}$, approximately 3 months. We will be calculating 
+4 option prices considering two different strike prices, one with the strike prices
+$K = 4600$, another one with the strike prices $K = 4300$. And we will evaluate 
+these option prices based on the parameters provided above. 
+
+```{r echo =FALSE}
+BlackScholes <- function(S, K, r, T, sig, type){
+  
+  if(type=="C"){
+  d1 <- (log(S/K) + (r + sig^2/2)*T) / (sig*sqrt(T))
+  d2 <- d1 - sig*sqrt(T)
+  
+  value <- S*pnorm(d1) - K*exp(-r*T)*pnorm(d2)
+  return(value)}
+  
+  if(type=="P"){
+  d1 <- (log(S/K) + (r + sig^2/2)*T) / (sig*sqrt(T))
+  d2 <- d1 - sig*sqrt(T)
+  
+  value <-  (K*exp(-r*T)*pnorm(-d2) - S*pnorm(-d1))
+  return(value)}
+}
+
+Strike_c = 4600
+Strike_p = 4300
+Current = 4454.89
+r = 0.055
+sigma = 0.01367511
+# 3 months til expiration 
+T_ = 3/12
+
+Euro_call1 <- BlackScholes(Current,Strike_c,r,T_,sigma,"C");
+Euro_put1 <- BlackScholes(Current,Strike_c,r,T_,sigma,"P");
+
+Euro_call2 <- BlackScholes(Current,Strike_p,r,T_,sigma,"C");
+Euro_put2 <- BlackScholes(Current,Strike_p,r,T_,sigma,"P");
+
+price_data = matrix(c(Euro_call1, Euro_call2, Euro_put1, Euro_put2), 
+                    ncol=2, byrow = TRUE)
+colnames(price_data) = c('Strike price = 4600', 'Strike price = 4300')
+rownames(price_data) = c('European Call', 'European Put')
+final=as.table(price_data, scientific=FALSE)
+format(final, scientific = FALSE)
+
+print("-------------------------------------------------")
+final2 = final*100; 
+format(final2, scientific = FALSE)
+
+
+# The variable CallValueperSigma would store all the option prices that are 
+# calculated with the different values of sigma along the sigma vector. 
+sigma_seq <- seq(0.01,0.8,0.005)
+
+CallValueperSigma <- BlackScholes(Current,Strike_c,r,T,sigma_seq,"C")
+# IV is the the min value of the difference between each value of the  #CallValueperSigma  vector and the call price. 
+
+IV <- which.min(abs(CallValueperSigma-Euro_call1))/2;IV
+
+#The “which” command would return the index of the value in the sigma vector that #correspond to the option price derived from the BlackScholes  function  that is #nearest respect  the call market price. 
+#This value is divided by two in order to get the specific Implied Volatility value from the sigma vector, because sigma starts from 0 to 0.5.
+
+
+```
+
+The Black-Scholes model assumes that one option contract corresponds to a single share of the underlying asset. However, in many markets, especially in the U.S., most options contracts are standardized to represent 100 shares of the underlying asset. Therefore, in the second table we've shown the actual option prices if we would purchase them in the actual market. One more interesting detail, retail investors like us normally can't trade S&P500 directly, as we can see above, the prices are quite high for normal investors, thus a lot of investors would trade options of SPY, a S&P500 ETF that have the same set of movements but with prices divided by 100. Thus in this case table 1 would be a better option pricing model for investors buying options of SPY. 
+
+Finally we could see that the extremely low prices of Call option with strike price at 4600 and put option with strike price at 4300 indicate that it is very unlike for the market to go above or below either respective direction in the next 3 months. Although Black-Schole model's constant volatility might over look certain pricing direction that could happen in the future - like a 
+financial crisis, it's still a good estimation for general case. 
+
+# 5.0 Conclusion
+
+From the above application we can see Brownian motion models are extremely useful 
+for defining the concepts of financial assets such as stocks, and options in terms of 
+a continuous-time stochastic process. However, these are just the fundamentals of 
+mathematical finance. With such powerful tool like Brownian motion, Stochastic 
+Differential Equations, Partial Differential Equations, Brownian motion models are
+also defining complete financial markets, portfolio management, risk management,
+and income and wealth process within a financial markets. It's a powerful tool in 
+Quantitative analysis and this the corner stone of modern financial theory.
+
+\newpage 
+
+# Reference 
+
+University of Dayton Department of Mathematics, and Angeliki Ermogenous. “Brownian Motion and Its Applications In The Stock Market.” \
+
+Bass, Richard F. *Stochastic Processes*. Cambridge University Press, 2011. \
+
+Chan, Raymond. “Black-Scholes Equations.” 2021. \
+
+# Appendix 
+
+## Appendix 1.1 
+
+$$
+\begin{aligned}
+&(\textrm{Proposition 2.2}) \textrm{ If } W \textrm{ is a Brownian motion started at } 0, a > 0 \textrm{, and } Y_{i} = aW_{t/a^{2}},\\
+&\textrm{ Then } Y_{i} \textrm{ is a Brownian motion started at 0.}\\
+&(\textrm{Proposition 2.3})\textrm{ If } W \textrm{ is a Brownian motion, then } W \textrm{ is a Gaussian process. }  \\
+&(\textrm{Proposition 2.4})\textrm{ If } W \textrm{is a process such that all the finite-dimensional distributions are jointly normal, }\\ &\mathbb{E} W_{s} = 0 \textrm{ for all s, } Cov(W_{s},W_{t}) = s \textrm{ when } s < t, \textrm{ and the paths of } W_{t} \textrm{ are continuous, then } W_{t} \\ &\textrm{ is a Brownian motion. }\\
+&(\textrm{Proposition 2.5})\textrm{ Let } W_{t} \textrm{ be a Brownian motion with respect to } \{\mathcal F_{t}^{00}\}, \textrm{ where } \{\mathcal F_{t}^{00}\} = \sigma(W_{s};s<t). \\
+&\textrm{ Let } \mathcal N \textrm{ be the collection of null sets, } \mathcal F_{t}^{0} = \sigma(\mathcal F_{t}^{00} \cup \mathcal N), \textrm{ and } \mathcal F_{t} = \cap_{\epsilon > 0}F_{t+\epsilon}^{0}.\\
+& (1) W \textrm{ is a Brownian motion with respect to the filtration } \mathcal F_{t}\\
+& (2) \mathcal F_{t} = \mathcal F_{t}^{0} \textrm{ for each t.}\\
+& (\textrm{Porposition 2.6}) \textrm{ Let } t_{0}>0 \textrm{ and let X,Y be a random variables taking values in } C[0,t_{0}] \\ &\textrm{ which have the same finite-dimensional distributions. Then the laws of X and Y are equal. }
+\end{aligned}
+$$
+
+## Appendix 1.2 
+
+We define $f(S_t) = log(S_t)$ as the function of $S_t$, and we have $S_t$ is an Ito's drift-diffusion process that satisfies the Stochastic differential equation:
+$$dS_t = \mu S_tdt + \sigma S_tdW_t, \textrm{ where }W_t \textrm{ is a Brownian motion}$$
+According to **Theorem 1** we know that
+
+$$f(X_t) = f(X_0) + \int^t_0 f'(X_s)dX_s + \frac{1}{2}\int^t_0f''(X_s)d \langle X \rangle_s, t \geq 0$$
+
+Then we have the following: 
+
+$$df = f'(S_t)dS_t + \frac{1}{2}f''(S_t)(dS_t)^2, t \geq 0$$
+where $(dS_t)^2$ is the quadratic variation of the Stochastic Differential Equation, can be written as,
+
+$$ 
+\begin{aligned}
+& (dS_t)^2 = (\mu S_tdt + \sigma S_t dW_t)^2 \\
+& (dS_t)^2 = \mu^2 S_t^2 dt^2 + 2\mu\sigma S_t^2dW_tdt + \sigma^2 S_t^2dW_t^2 \\
+\end{aligned}
+$$ 
+
+Notice when $dt \to 0 \; dt$ converges to 0 faster than $dWt$, since $dW_t^2 = o(dt).$ The above infinitesimal can be simplified as:
+
+$$ 
+\begin{aligned}
+& (dS_t)^2 = \sigma^2 S_t^2dW_t^2 = \sigma^2 S_t^2dt^2\\
+\end{aligned}
+$$
+
+
+Plug $(dS_t)^2 = \sigma^2 S_t^2dt^2$, $f(S_t) = log(S_t)$, and $dS_t = \mu S_tdt + \sigma S_tdW_t$ into the above function $df$ we have:
+
+$$
+\begin{aligned}
+& df = f'(S_t)dS_t + \frac{1}{2}f''(S_t)(dS_t)^2 \\
+& df = \frac{1}{S_t}(\mu S_tdt + \sigma S_tdW_t) + \frac{1}{2}(-S_t^{-2})(\sigma^2 S_t^2dt^2) \\
+& df = \mu dt + \sigma dW_t -\frac{1}{2}\sigma^2dt \\
+& df = \sigma dW_t + (\mu - \frac{1}{2}\sigma^2)dt \\
+& f(S_t) = f(S_0) + \int^t_0 f'(S_s)dS_s + \frac{1}{2}\int^t_0f''(S_s)d \langle S \rangle_s \\
+& log(S_t) = log(S_0) + \sigma W_t + (\mu - \frac{\sigma^2}{2})t \\
+& S_t = S_0e^{\sigma W_t + (\mu - \frac{\sigma^2}{2})t}
+\end{aligned}
+$$
+
+## Appendix 1.3
+
+```{r spx_app, eval=FALSE, echo=TRUE}
+data <- read.csv("spx.csv")
+close_price <- rev(data$Close.Last)
+df <- data.frame(close_price)
+
+x <- seq(0,1256)
+
+par(mfrow=c(1,3))
+
+ap <- ggplot(data = df, aes(x=x, y = close_price)) + 
+  geom_line() +
+  geom_smooth(method="lm", color = "green",lwd = .5, span = 0.8)+
+  geom_smooth(method="glm", method.args=list(family=gaussian(link="log")), 
+              color = "coral1") +
+  labs(title = "Daily closing price of S&P500", x ="Days", y = "Prices")
+
+sp500_prices <- data[, "Close.Last", drop = FALSE]
+# Denote n the number of time periods:
+n <- nrow(sp500_prices);
+sp500_ret <- ((sp500_prices[2:n, 1] - 
+               sp500_prices[1:(n-1), 1])/sp500_prices[1:(n-1), 1])
+# Now add dates as names to the vector and print the first elements of 
+# sp500_ret to the console to check
+names(sp500_ret) <- data[2:n, 1]
+
+# Denote n the number of time periods:
+n <- nrow(sp500_prices)
+sp500_ret <- ((sp500_prices[2:n, 1] - 
+               sp500_prices[1:(n-1), 1])/sp500_prices[1:(n-1), 1])
+
+# Compute continuously compounded 1-month returns
+sp500_ccret <- log(sp500_prices[2:n, 1]) - log(sp500_prices[1:(n-1), 1])
+
+df_ret <- data.frame(sp500_ccret, sp500_ret)
+names(df_ret) = c("Continuous Compounded", "Simple")
+
+bp <- ggplot(data=df_ret, aes(x=seq(1,1256),y=`Continuous Compounded`)) +
+  geom_line()+
+  labs(title = "S&P 500 Daily return: continuous compounded",
+       subtitle = "End of Day Prices",
+       caption = " Source: Nasdaq") +
+  xlab("Date") + ylab("Price") +
+  scale_color_manual(values = c("DarkBlue"))
+
+cp <- ggplot(data=df_ret, aes(x=seq(1,1256),y=`Simple`)) +
+  geom_line()+
+  labs(title = "S&P 500 Daily return: Simple",
+       subtitle = "End of Day Prices",
+       caption = " Source: Nasdaq") +
+  xlab("Date") + ylab("Price") +
+  scale_color_manual(values = c("Orange"))
+
+figure <- ggarrange(ap,               
+  # First row with line plot
+  # Second row with the return line plots
+  ggarrange(bp, cp, ncol = 2, labels = c("B", "C")), 
+  nrow = 2, 
+  labels = "A"       # Label of the line plot
+  ) 
+figure
+
+```
+
+## Appendix 1.4
+```{r gbm_app, eval=FALSE, echo=TRUE}
+
+# Vectorised approach to GBM simulation
+gbm_vec <- function(nsim = 100, t = 25, mu = 0, sigma = 0.1, S0 = 100, dt = 1./365) {
+  
+  # matrix of random draws - one for each day for each simulation
+  epsilon <- matrix(rnorm(t*nsim), ncol = nsim, nrow = t)  
+  
+  # get GBM and convert to price paths
+  gbm <- exp((mu - sigma * sigma / 2) * dt + sigma * epsilon * sqrt(dt))
+  gbm <- apply(rbind(rep(S0, nsim), gbm), 2, cumprod)
+  
+  return(gbm)
+}
+set.seed(1)
+nsim <- 200
+t <- 100
+mu <- 0
+sigma <- 0.01367511
+S0 <- 4554.89
+
+gbm <- gbm_vec(nsim, t, mu, sigma, S0)
+
+gbm_df <- as.data.frame(gbm) %>%
+  mutate(ix = 1:nrow(gbm)) %>%
+  pivot_longer(-ix, names_to = 'sim', values_to = 'price')
+
+gbm_p <- ggplot(data = gbm_df, aes(x=ix, y=price, color=sim)) +
+       geom_line() +
+       theme(legend.position = 'none')
+
+# start <- Sys.time()
+gbm <- gbm_vec(nsim = 200000, t, mu, sigma, S0)
+# Sys.time() - start
+
+price = data.frame(price = gbm[t, ])
+price_p <-
+  ggplot(data = price, aes(x = price)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.1) +
+  geom_density() + 
+  ggtitle('terminal price distribution')
+
+D <- gbm[t, ] %>%
+  density()
+
+strike = 4600
+
+profile <- tibble(
+  price = D$x, 
+  value = case_when(price <= strike ~ 0, TRUE ~ price - strike)
+)
+
+# dataframe of payoffs and probabilities 
+prob_wieghted_payoff_profile <- profile %>%
+  mutate(density = D$y/sum(D$y)) 
+
+payoff_profile_p <-
+  ggplot(data = prob_wieghted_payoff_profile, aes(x = price, y = value*density)) +
+  geom_line() +
+  xlab('price') +
+  ylab('probability-weighted payoff')
+
+expected_value <- prob_wieghted_payoff_profile %>%
+  summarise(ev = sum(density * value))
+
+figure <- ggarrange(gbm_p,               
+  # First row with line plot
+  # Second row with the return line plots
+  ggarrange(price_p, payoff_profile_p, ncol = 2, labels = c("E", "F")), 
+  nrow = 2, 
+  labels = "D"       # Label of the line plot
+  ) 
+figure
+expected_value
+```

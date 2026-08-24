@@ -1,0 +1,635 @@
+---
+title: "Assignment 2"
+author: "Hanshuo  Ma"
+date: "`r Sys.Date()`" 
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    number_sections: yes
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+\newpage 
+
+# Introduction: Forces Driving the Market Volatility
+
+In financial markets, where an ecosystem of insurance, pensions, and local and foreign investment, risk management is the cornerstone and foundation of the entire market. Pension funds, Investment Banking, and other financial institutions are all making decisions revolving around one question, "How much risk is this trade?". Nowadays, perhaps only government central banks are making monetary policy decisions based on the economic situation. They would purchase or sell government bonds at a certain yield-to-maturity on the primary market to influence the interest rate to achieve monetary policy changes. These government bonds are also known as "risk-free" bonds, these bonds would normally yield the interest rate if the they are held until maturity. Since the government is responsible for the cash flow of the bond's payout, Fedral government bonds are deemed one of the least risky financial investments. 
+  
+However, Federal government bonds are also deemed as one of the most boring and yield the lowest return among most of the financial securities existing in the market. Most financial securities or services advertised, are directly competing with such "risk-free" government bonds. Because of the inherently larger risk they carry - especially compared to U.S. government bonds, they would interm need to offer a higher yield or a lower price point, and this variation in the expected return, created volatility. A corporate junk bond can have an 8% rate of return with one year YTM, however, very few people would buy such a bond, and the price of the bond could fluctuate depending on how well the company issued it is doing. Such an exhibition of volatility leaves room for investors to speculate and make money, and they would use an instrument called Option.  
+  
+Normally, when an investor speculates on a financial security, whether they think the price of the security would go up or down, they would enter a long or a short position respectively, however, the risk of a short position is not protected. Theoretically, a company can go bust and have a stock price value of zero, but a company can also do great and have a stock price going up infinitely. This is what we observed with GME in 2021, where investors bought huge amounts of GME stocks so that the short seller would take huge losses if they tried to fulfill their short contract. Therefore, investors use a much safer derivative to speculate prices of financial securities, Option. 
+
+Option gives the buyer of a contract, the right but not the obligation to fulfill it. A call option gives the buyer the choice to buy contracted securities at a certain strike price, and a put option gives the buyer the choice to sell contracted securities at a certain strike price. The essential factor here is, that it offers a choice, the owner of the option contract can choose to let it expire worthless, and lose nothing but the price they paid for such a contract, thus the buyer of the option contract has downward protection. 
+  
+Although options are created as a contract to protect the buyers, nowadays investors - especially the younger generation use options more aggressively to predict, or spectate on stock or index prices such as S&P500. Even more so, there are investors who specialize in trading 0DTE option contracts, since these contracts have more volatility. In this assignment, our target is to build a regression model to predict the monthly value of the Cboe Volatility Index (VIX), VIX is built around a forward-looking volatility that is implied by the prices of option contracts of the S&P500 index. 
+  
+Once a solid regression model to predict the monthly VIX index is built. We would be able to predict the monthly volatility of option prices in the S&P500 index, which in turn will tell us how much risk is the stock market willing to take.  And with the knowledge of the main parameters that result in such instability of the stock market, it will paint a picture of the direction the stock market is currently taking.    
+
+# Phase 1: The OLS, Ridge regression, LASSO, and Elastic Net
+
+## The OLS regression
+
+We decided to both centering and scaling the data (standardizing it) from the beginning so that in the following steps of applying models such as, ridge regression, LASSO, and elastic net, we don't have to let the package handle standardization for us, hence, the numerical results of coefficients can be interpret much more plainly.  
+
+Implementing the OLS model, the function __lm()__ will fit a linear regression model for us. Since we have standardized data, we won't have an intercept coefficient, and we can interpret the coefficients more plainly based on their values. The summary of the OLS coefficients^[Appendix: 1.1 OLS regression model] shows that only 10 out of 46 standardized coefficients are statistically significant with a 5% significance level. From our OLS model we can have concluded: 
+
+$$\hat y_{i} = \beta_{1}x_{i1} + ... + \beta_{10}x_{i10}$$, where 
+
+* $\{x_{i1} ... x_{i10}\}$ = 
+
+1. `Macro – Broad Quantity Indicators EMV Tracker`
+2. `Macro – Inflation EMV Indicator`
+3. `Macro – Interest Rates EMV Tracker`
+4. `Labor Disputes EMV Tracker`
+5. `Intellectual Property Matters EMV Tracker`
+6. `Government Spending, Deficits, and Debt EMV Tracker`
+7. `Regulation EMV Tracker`
+8. `Financial Regulation EMV Tracker`
+9. `Energy and Environmental Regulation EMV Tracker`
+10. `Other Regulation EMV Tracker`  
+
+Hence, our OLS model conclude, here are the most dominant forces that influence the movement of the stock market in the last 33 years. Not to our surprise that the OLS model concludes that the implied volatility in the last 33 years are mostly influenced by Marco economics and Micro economics policy changes, as well as government regulation over financial sector. With most of then derive from the U.S. equity market index tracker.
+
+$\hat{y_{i}} = 0.2478x_{i1} + 0.3233x_{i2} - 0.4968x_{i3} + 0.2041x_{i4} + 0.1235x_{i5} - 0.2648x_{i6} - 0.2834x_{i7} + 0.3275x_{i8} + 0.1046x_{i9} - 0.0963x_{i10}$
+
+However, considering the the high number of predictors here $p = 46$, we need to deploy Variance inflation factor (VIF) to detect existing multicollinearity within the OLS regression model. The results from the __vif()__ function shows that there are 24 predictors' VIFs exceeding 4, and 15 predictors' VIFs exceeding 10. There are some serious multicollinearity within the OLS regression model that requires correction. Hence, we need to rely on shrinking method to limit the number of predictors in our model, instead of using OLS regression model.  
+
+## Shrinking Methods and Cross Validation
+
+Rather than handpick observations to be included in the training set which could result in highly variate testing errors depending on which observations are included in the training set, the fitted model tends to overestimate the testing error with a smaller training set than the entire data set, we will be performing a k-Fold Cross Validation (k = 5). Where the entire data set is split into 5 approximately equal size folds. The first fold going to be treated as a validation set and the remainder as the training set, and we repeat this process 5 times; each time a different group of folds will be selected as a validation set. For both ridge regression and lasso we will be using k-fold cross-validation with k = 5. As for Elastic Net, we will increase the fold to k = 10 to find a more accurate $\lambda$ and $\alpha$. 
+
+The entire process of k-fold cross-validation will be carried out using the __glmnet__ R package^[Appendix: 1.2 Ridge regression model, 1.3 LASSO]. Since our data is already standardized, we will be setting the argument __standardize = FALSE__  during the process. 
+
+## Ridge Regression
+Ridge regression coefficient estimates $\hat\beta^R$ are the values that minimize: 
+
+$$\sum^n_{i=1}(y_i - \beta_0 - \sum^p_{j=1}\beta_jx_{ij})^2 + \lambda\sum^p_{j=1}\beta_j^2 = \text{RSS} + \lambda\sum^p_{j=1}\beta_j^2 $$
+where $\lambda \geq 0$. And $\lambda$ is a tuning parameter. 
+After applying cross validation, we can plot the standardized ridge regression coefficients as a function of $\lambda$ as well as the the plot of the cross-validation fit. There are two important variables *Lambda.min* and *Lambda.1se*. *Lambda.min* gives the corresponding value of $\lambda$ that produce the minimum MSE of cross-validated error, and *Lambda.1se* gives the largest corresponding value of $\lambda$ at which the MSE is within one standard error of the smallest MSE of *Lambda.min*. 
+
+From the plot^[Appendix: 1.2 Log Lambda Plot] we could see despite *Lambda.min* offers the minimal MSE of cross-validated error, the ridge coefficients converge nicely at corresponding *Lambda.1se*. By the parsimony principle, we shall stick to the simplest explanation of the data, therefore here the ridge regression will have tuning parameter $\lambda = \lambda_{\text{1se}}$. 
+
+As the summary ridge regression model shows^[^[Appendix: 1.2 Ridge regression summary], only one of the standardized ridge regression coefficient is shrunk to zero (or very close to zero) - the model itself doesn't perform variable selection. From our ridge regression model we have concluded: 
+
+$$\hat y_{i} = \beta_{1}x_{i1} + ... + \beta_{45}x_{i45}$$,
+
+The only coefficients that is not in our ridge regression model, is  
+
+* 
+1. `Macro – Business Investment and Sentiment EMV Tracker`
+ 
+According to the results of standardized ridge regression coefficients, we can select top 10 most dominant forces out of 45 that influence the movement of the stock market in the last 33 years. Ordering from the strongest to the lowest: 
+
+1. `Financial.Regulation EMV Tracker (0.0693)`
+2. `Labor.Disputes EMV Tracker (0.0514)`
+3. `Regulation EMV Tracker (0.0513)`
+4. `EMV (0.0482)`
+5. `Government Sponsored Enterprises EMV Tracker (0.0418) `
+6. `Political Uncertainty Tracker (0.0405)`
+7. `Commodity Markets EMV Tracker (0.0385)`
+8. `Macroeconomic News and Outlook EMV Tracker (0.0381)`
+9. `Trade Policy EMV Tracker (-0.0364)`
+10. `Macro - Broad Quantity Indicators EMV Tracker (0.0336)`  
+
+
+## Lasso
+
+As we can observe from the results of above ridge regression model, ridge regression includes all 46 predictors in the final model, The penalty $\lambda\sum^p_{j=1}\beta_j^2$ will shrink all of the coefficients towards zero, but none of them will be set exactly equal to zero, with all 46 predictors present in the final model, it can be challenging to interpret each coefficients since they are all so close to each other. 
+
+The lasso coefficients $\hat \beta^{L}_{\lambda}$ minimize:
+$$\sum^n_{i=1}(y_i - \beta_0 - \sum^p_{j=1}\beta_jx_{ij})^2 + \lambda\sum^p_{j=1}|\beta_{j}| = \text{RSS} + \lambda\sum^p_{j=1}|\beta_{j}| $$ As the lasso use $\ell_1$ penalty, which $\ell_1$ norm of a coefficient vector is $||\beta||_{1}$. Unlike the ridge regression, Lasso will perform variable selection and force to shrink some of the coefficients estimates to exactly equals to zero. 
+
+From the plot^[Appendix: 1.3 Log Lambda Plot], we can see *Lambda.1se* offers a decent and far cleaner lasso model, however, compare it to *Lambda.min* it contains too few of coefficients in the model (only 3 coefficients haven't shrunk to zero), therefore here the lasso will use $\lambda = \lambda_{\text{min}}$. As the summary of lasso model shows^[Appendix: 1.3 Lasso model], 22 out of 46 lasso coefficients are  shrunk to zero (or very close to zero), the lasso yields **spares** models - the model that involve only a subset of the variables. From our lasso model we have concluded: 
+
+$$\hat y_{i} = \beta_{1}x_{i1} + ... + \beta_{24}x_{i24}$$,
+
+After further selection, we can select top 11 out of 24 most dominant lasso coefficients that influence the movement of the stock market in the last 33 years. Ordering from the strongest to the lowest: 
+
+* $\{\hat\beta_{1} ... \hat\beta_{i11}\}$ = 
+ 
+1. `EMV(0.3669)`
+2. `Macro – Interest Rates EMV Tracker (-0.2997)`
+3. `Financial Regulation EMV Tracker (0.1761)`
+4. `Labor Disputes EMV Tracker (0.1597)`
+5. `Macro – Inflation EMV Indicator (0.1470)`
+6. `Macro – Broad Quantity Indicators EMV Tracker (0.1254)`
+7. `Government Spending, Deficits, and Debt EMV Tracker (-0.0883)`
+8. `Infectious Disease EMV Tracker (0.0702)`
+9. `Trade Policy EMV Tracker (-0.0561)`
+10. `Energy and Environmental Regulation EMV Tracker (0.0548)` 
+11. `Intellectual Property Matters EMV Tracker (0.0501)`
+
+## Net Elastic
+
+The Elastic Net minimize:
+
+$$||\textbf{y} - \textbf{X}\beta||^2 + \lambda_{1}\sum^m_{j = 1}|\beta_{j}| + \lambda_{2}\sum^m_{j = 1}\beta_{j}^2$$
+
+If $\lambda_{1} = 0$ the Elastic Net model will reduce to ridge regression wand if $\lambda_{2} = 0$ the Elastic Net model will reduce to lasso. This model is also equivalent to minimizing: 
+
+$$ \frac{||\textbf{y} - \textbf{X}\beta||^2}{2n} + \lambda(\frac{1-\alpha}{2}\sum^m_{j = 1}\beta_{j}^2 + \alpha\sum^m_{j = 1}|\beta_{j}|)$$
+
+
+Elastic Net model uses both penalty terms from ridge regression and Lasso, L1 norm and L2 norm. L1 norm will perform feature selection and L2 norm will perform feature shrinkage, $\alpha$ find the degree of mixing between ridge regression and lasso, and $\lambda$ determines the degree of shrinkage performed. Depends on the degree of shrinkage (value of $\lambda$), each segments will have different number of coefficients with respective value associated to them. We will apply two filters on top of these coefficients in order to better interpreting the data and identity the main dominant forces that are responsible for movements of stock market in each segment. First layer of filter is to get rid off all the coefficients that gets shrunk to zero or extremely close to zero - only keeping the coefficients that are greater than 0.001, this is the result of fitting Elastic Net model. Second layer of filter is to look at more dominant coefficients among the existing Elastic Net model, we will be keeping the coefficients that is  greater than 0.05. Finally, after two filters we can look at the Elastic Net model with more clarity and confidently conclude from the results.  
+
+As the summary of the Elastic Net shows ^[Appendix: 1.4 Ridge regression model], with optimal $\alpha$ and $\lambda$, 21 out of 46 lasso coefficients are 
+shrunk to zero (or very close to zero). From the Elastic Net model we have concluded: 
+
+$$\hat y_{i} = \beta_{1}x_{i1} + ... + \beta_{25}x_{i25}$$
+Among the 25 Elastic Net regression coefficients, we select top 11 out of 25 most dominant Elastic Net coefficients that influence the movement of the stock market in the last 33 years. Ordering from the strongest to the lowest: 
+
+* $\{\hat\beta_{1} ... \hat\beta_{i11}\}$ = 
+ 
+1. `EMV (0.37024178)`
+2. `Macro – Inflation EMV Indicator (0.17833823)`
+3. `Macro – Interest Rates EMV Tracker (-0.34624334)`
+4. `Financial Regulation EMV Tracker (0.16866545)`
+5. `Labor Disputes EMV Tracker (0.16705517)`
+6. `Macro – Broad Quantity Indicators EMV Tracker (0.15332887)`
+7. `Government Spending, Deficits, and Debt EMV Tracker (-0.10799054)`
+8. `Infectious Disease EMV Tracker (0.07729187)`
+9. `Intellectual Property Matters EMV Tracker (0.06817608)`
+10. `Energy and Environmental Regulation EMV Tracker (0.06665811)` 
+11. `Trade Policy EMV Tracker (-0.06212057)`
+
+
+## Phase 1: Conclusion 
+
+From the above 4 models: OLS regression, Ridge regression, LASSO, and Elastic Net regression. We can identity some important influential coefficients that are the most influential to the stock market in the last 33 years. Existing most dominant coefficients appears in all four models: Macro – Broad Quantity Indicators EMV Tracker.
+Existing most dominant coefficients appears in 2 or 3 models: Macro – Inflation EMV Indicator, Labor Disputes EMV Tracker, Macro – Interest Rates EMV Tracker, Intellectual Property Matters EMV Tracker, Government Spending, Deficits, and Debt EMV Tracker, Financial Regulation EMV Tracker, Energy and Environmental Regulation EMV Tracker, EMV, Trade Policy EMV Tracker, Regulation EMV Tracker, Infectious Disease EMV Tracker.
+
+Based on all four existing regression models that we have fitted, within the realm of General Economics Categories, the most dominant coefficients can be categorize as EMV trackers of the following indicators: Broad Quantity, Inflation, Interest Rate, Labor Disputes, and Intellectual Property Matters. On the other hand, in the Policy-Related Categories the most dominant coefficients can be categorize as the EMV trackers of the following: Government Spending, Deficits, and Debt, Trade Policy, Regulation (generic regulation + 4 big regulation categories) with more emphasis on Financial Regulation, and Energy and Environmental Regulation. Lastly, Infectious Disease EMV Tracker and Newspaper-Based Equity Market Volatility Tracker.  
+
+It is not surprise that the General Economics sense that pushes the volatility in the stock market in the last 33 years are dominated by the general public's consensus towards Macro Economics indicator such as CPI, inflation, interest rate. In the last thirty three years the global saw the shift from keynesianism to monetarism, especially with the rise of China, and India's economy stretching from the early 1990s, going back even further the rise and fall of Japanese economy. Monetarism have proven its effects on economy within mid to long-term period is effective and significant. This also explain a good amount, why coefficients such as Government Spending, Deficits, and Debt and Trade Policy remain dominant in the stock market across all 33 years, government deficit, interest rate and net export with jacob relation are all closely related to Macroeconomics theory that focus on economy growth and stability with control of money supply and foreign exchange rate. And the competition between international trade have being consistently competitive in the last 33 years, especially the US-China trade relationship keep developing for nearly three decades. 
+
+Last 33 years, the stock market saw it's fair share of financial crisis and instability, Asian Financial Crisis, Russian Financial Crisis, 9/11, Dot-com bubble burst, the insane volatility in the market that CDO, synthetic CDO funds created, sub-prime mortgage bond crisis, Lehman brothers, COVID-19 and the Banking crisis of 2023. This also explained why Newspaper-Based Equity Market Volatility Tracker (EMV) also being a dominant coefficient in the past 33 years across all four models. 
+
+Of course, even with all four models, the above conclusion can only paint the most broad picture about the volatility of the stock market, it is possible to paint a cohesive picture about the stock market with all of the above dominant coefficients, however, more accurate predictive model require data segmentation and maybe boostraping. 
+
+# Phase 2: Segmentation 
+
+Here we have six segments that have been divided from the past 33 years between 1990-01 and 2022-12, the data segmentation is done by the instructor of the course. Consider the relatively smaller sample size we have for each segment compare to phase 1, we are using "Leave-one-out" cross validation method instead of k-fold cross validation, with k = 5. Both methods should perform relatively the same, there is a  bias-variance trade off associated with this decision, choosing "Leave-one-out" the test error estimate will be unbiased but have higher variance than the test error estimate from k-fold cross validation. However, considering the small sample size and high number of predictors in some of the segment, such as segment 6, where $n < p$, such variance should be similar across two methods. 
+
+## Segment 1: 1990-01 to 1998-06
+
+As the summary of the Elastic Net shows ^[Appendix: Segment 1: 1990-01 to 1998-06], with optimal $\alpha$ and $\lambda$, 27 out of 46 lasso coefficients are shrunk to zero (or very close to zero). And among the 19 Elastic Net regression coefficients, we select top 12 out of 19 most dominant Elastic Net coefficients that influence the movement of the stock market in between 1990-01 and 1998-06. Ordering from the strongest to the lowest: 
+
+*
+1. `Commodity Markets EMV Tracker 0.19708726`
+2. `Petroleum Markets EMV Tracker 0.18788279`
+3. `Macro – Interest Rates EMV Tracker Macro -0.18524370`
+4. `Labor Regulations EMV Tracker  0.17513928 `
+5. `Trade Policy EMV Tracker -0.17502308`
+6. `Financial Regulation EMV Tracker 0.14741018`
+7. `Labor Disputes EMV Tracker 0.12711183`
+8. `Macro – Real Estate Markets EMV Tracker  0.10297493`
+9. `Litigation Matters EMV Tracker -0.08583580`
+10. `Healthcare Matters EMV Tracker -0.07395453`
+11. `Macro – Trade EMV Tracker -0.05991203 `
+12. `Government-Sponsored Enterprises EMV Tracker -0.05807430`
+
+We can see in the 8 years between 1990 to 1998, the Commodity Market EMV tracker almost have the same amount of impact on VIX index as Petroleum Markets EVM Tracker. This might due two two oil price crisis happened within the period. The first one is 1990 Oil price shock when Iraq invaded of a OPEC number. The oil price not only shock the volatility of the commodity and Oil markets, this volatility also contributed to the U.S. economy's inflation. The second one is 1997 - 1998 oil price shock dropping nearly 40 percent. Trade Policy and Interest rate are also the dominant forces in this period, implementation of NAFTA in 1994, creation of WTO incentivize global trade, also during this period U.S. have being consistently decrease its prime rate to incentivize loan and increasing growth of the economy.  
+
+## Segment 2: 1998-07 to 2003-03
+
+As the summary of the Elastic Net shows ^[Appendix: Segment 2: 1998-07 to 2003-03], with optimal $\alpha$ and $\lambda$, 45 out of 46 lasso coefficients are shrunk to zero (or very close to zero). We only have 1 Elastic Net coefficient that influence the movement of stock market in between 1998-07 and 2003-03. 
+*
+1. `Labor.Disputes.EMV.Tracker 0.3199858`
+
+This model is hard to analyze, there could be a mistake here that results in only one coefficients remain after fitting the Net Elastic Model. Possible explanation here is, major labor dispute such as West Coast Port Dispute which led the U.S. government to use Taft-Hartley Act to reopen the ports have significant impact on the stock market. Also United Airlines Bankruptcy might also contribute the fact that the labor disputes further create more volatility within the stock market and caused more turbulence. Also, 9/11 happened, caused huge disturbance in the stock market. 
+
+## Segment 3: 2003-04 to 2007-12
+
+As the summary of the Elastic Net shows ^[Appendix: Segment 3: 2003-04 to 2007-12], with optimal $\alpha$ and $\lambda$, 35 out of 46 lasso coefficients are shrunk to zero (or very close to zero). And among the 11 Elastic Net regression coefficients, we select top 8 out of 11 most dominant Elastic Net coefficients that influence the movement of the stock market in between 2003-04 to 2007-12. Ordering from the strongest to the lowest:
+
+*
+1. `Fiscal Policy EMV Tracker 0.18472310`
+2. `Taxes EMV Tracker 0.15754616`
+3. `Energy.and.Environmental.Regulation.EMV.Tracker 0.13048768`
+4. `Macro – Other Financial Indicators EMV Tracker 0.07982443 `
+5. `Entitlement and Welfare Programs EMV Tracker -0.07388552`
+6. `Macro – Real Estate Markets EMV Tracker 0.07163136`
+7. `Macro – Trade EMV Tracker -0.05675504` 
+8.  `Other Regulation EMV Tracker 0.05356060`
+
+March 2003 mark the beginning of Iraq War, with the period of Bush Tax Cuts. These factors explained the possible relation with the dominant coefficients on top being Fiscal policy and Taxes cut, and Energy regulation might be related to Iraq war. On the side, the stock market saw the continue rising of real estate prices, with the bank continuation of sub-prime mortgage loan and rise of CDO funds, the stock markets have an average low volatility in this period.  
+
+## Segment 4: 2008-01 to 2009-09
+
+As the summary of the Elastic Net shows ^[Appendix: Segment 4: 2008-01 to 2009-09], with optimal $\alpha$ and $\lambda$, 23 out of 46 lasso coefficients are shrunk to zero (or very close to zero). And among the 23 Elastic Net regression coefficients, we select top 7 out of 23 most dominant Elastic Net coefficients that influence the movement of the stock market in between 2008-01 to 2009-09. Ordering from the strongest to the lowest: 
+
+*
+1. `Financial.Crises.EMV.Tracker(0.07510118)`
+2. `Other Regulation EMV Tracker(-0.06643348)`
+3. `Financial.Regulation.EMV.Tracker(0.06521472)`
+4. `Government Spending, Deficits, and Debt EMV Tracker(0.05684049)`
+5. `Regulation.EMV.Tracker(0.05248406)`
+6. `Healthcare.Policy.EMV.Tracker(0.05165054)`
+7. `Macro...Labor.Markets.EMV.Tracker(0.05159228)`
+
+Here we are, the infamous 2008 sub-prime mortgage crisis. Banks keep issuing NINJA loans and offloading them to special vehicles, and then these loans turned into mortgage bonds with the incredible correlated risk involved with CDOs and synthetic CDOs. When the real estate price falls, all hell break lose, a housing market crisis turned into a global financial crisis. During this short period of time we have^[Reference 1], Fannie and Freddie emergency measures, Lehman failure, AIG takeover, Reserve Primary Fund “breaks the buck,” short selling bans. On top of that, with the news of a bail out we have TARP, QE1, New Fed, Treasury and FDIC guarantees & lending facilities, new bank regulations and more. This financial crisis alone explained all possible relationship this period has with the dominant coefficients in the Elastic Net model.  
+
+## Segment 5: 2009-10 to 2019-12
+
+As the summary of the Elastic Net shows ^[Appendix: Segment 5: 2009-10 to 2019-12], with optimal $\alpha$ and $\lambda$, 19 out of 46 lasso coefficients are shrunk to zero (or very close to zero). And among the 27 Elastic Net regression coefficients, we select top 9 out of 27 most dominant Elastic Net coefficients that influence the movement of the stock market in between 2009-10 to 2019-12. Ordering from the strongest to the lowest:
+
+*
+1. `Immigration.EMV.Tracker -0.08827987`
+2. `Intellectual.Property.Matters.EMV.Tracker 0.08143703 `
+3. `Healthcare.Matters.EMV.Tracker -0.08032676`
+4. `Macro...Other.Financial.Indicators.EMV.Tracker 0.07612904`
+5. `Elections.and.Political.Governance.EMV.Tracker -0.07407549`
+6. `Infectious.Disease.EMV.Tracker -0.06211235`
+7. `Agricultural.Policy.EMV.Tracker-0.05008274`
+8. `Macro...Real.Estate.Markets.EMV.Tracker 0.25291524`
+9. `Financial.Regulation.EMV.Tracker 0.21183452`
+
+Within the next ten years of 2008 global financial crisis^[Reference 1], U.S. experienced Debt ceiling crisis, U.S. Fiscal Cliff, Europe have Greek referendum to intensifies euro-zone crisis, the announcement of brexit, two elections in the U.S., Obama re-election, and Trump Election. Once Trump takes office, U.S. pulls out of TPP, tariff hike steel, have trade tensions with China and other partner. Since 2016, Trump mainly focus attacking immigrant in the U.S., even signed Executive Order 13769, the trump travel ban - the "Muslim ban". 
+
+
+## Segment 6: 2020-01 to 2022-12
+
+As the summary of the Elastic Net shows ^[Appendix: Segment 6: 2020-01 to 2022-12], with optimal $\alpha$ and $\lambda$, 24 out of 46 lasso coefficients are shrunk to zero (or very close to zero). And among the 22 Elastic Net regression coefficients, we select top 15 out of 22 most dominant Elastic Net coefficients that influence the movement of the stock market in between 2020-01 to 2022-12. Ordering from the strongest to the lowest: 
+
+*
+1. `Trade.Policy.EMV.Tracker (0.22060393)`
+2. `Elections.and.Political.Governance.EMV.Tracker (0.18330624)`
+3. `Labor.Regulations.EMV.Tracker (-0.13725927)`
+4. `Regulation.EMV.Tracker (-0.13214861)`
+5. `Energy.and.Environmental.Regulation.EMV.Tracker (0.12692430)`
+6. `National.Security.Policy.EMV.Tracker (0.10520724)`
+7. `Exchange.Rates.EMV.Tracker (0.10250544)`
+8. `Taxes.EMV.Tracker (-0.09870729)`
+9. `Intellectual.Property.Matters.EMV.Tracker (0.09666605)`
+10. `Macro...Other.Financial.Indicators.EMV.Tracker (-0.09365449)`
+11. `Fiscal.Policy.EMV.Tracker (-0.08159263)`
+12. `Macro...Consumer.Spending.and.Sentiment.EMV.Tracker (0.07508610)`
+13. `Lawsuit.and.Tort.Reform..Supreme.Court.Decisions.EMV.Tracker (-0.05997250)`
+14. `Government Spending, Deficits, and Debt EMV Tracker (-0.05530999)`
+15. `Food.and.Drug.Policy.EMV.Tracker  (0.05483453)`
+
+From 2020 January to 2022 December, the world have experience a pandemic, an election within the U.S. that revolve around a potential re-election of a very controversial president, Donald Trump, an official brexit between UK and EU, and the aftermath of US-China trade war. Needless to mention the wound that 1 year lock-down and quarantine the COIVD-19 have inflicted on global supply chain and global trade. The rapid development of vaccines alongside with government stimulus helps the economy to adjust quickly, as it's reflected by the stock market. 
+
+# Conclusion 
+
+If we only look at the chaotic(pink) segments of the stock market - segment 2, 4, and 6. We notice that these periods of time are the most volatile periods of the stock markets. Such changes in volatility - the change in option prices, usually means huge loses are taken from both writer and buyer of the options to offload their risk from the market and take liquidity as a life saving measure. However, upon close inspection, only Regulation.EMV.Tracker, and Government Spending, Deficits, and Debt EMV Tracker are the common ground all three segments shares. This mains that despite all three segments share the same rapid changes in volatility in the stock market within each segment. These changes in volatility aren't necessarily cause by the same factor. However, as the result of such changes, government stimulus and insurance by increasing government spending and increase measure of regulation is always paired with them. 
+
+Same thing could be said about the normal (blue) segments of the stock market - segment 1, 3, 5. Despite the normality or stability it reflects over the stock market. There isn't one or several dominant coefficients that are strongly presents to ensure the stability. Of course there are always the presence of trackers regarding the Financial regulation and general Macroeconomic indicators in these normal segments. But the overall dynamics of the normal segments can not be concluded as the influence of several dominant coefficients in general, rather than the constant change in Macroeconomics, and reactionary response to Monetary and Fiscal policy imposed by the Central Bank and Federal government respectively 
+
+# Appendix
+
+## 1.0 Setting up libraries and data
+
+All the used library and how I processed the data
+```{r loading, comment=NA, echo=TRUE, include = TRUE}
+library(tidyverse)
+library(readxl)
+library(car)
+library(leaps)
+library(glmnet)
+library(caret)
+
+# Read the data from excel data
+data <- read_excel("EMV_VIX_Data.xlsx")
+# Since our VIX is one month downshifted, we can no longer treat
+# this as a time-series data. Therefore, we no longer needs to look at the relationship between time and VIX, we could exclude Date from our modeling
+# We could add more variables in the future.
+mapping_data <- data.frame(x = data$Date, y = data$VIX)
+# Date category will be in exclusion list (needs all data to be numerical)
+drop_out <- c("Date")
+# dropping all the names in exclusion list
+VIX_data = data[, !names(data) %in% drop_out]
+# checking number of coefficients 
+length(names(VIX_data))
+# no scientific numbers
+options(scipen = 19)
+# Both center and scale the data (normalizing the data)
+standard_VIX <- scale(VIX_data, center = TRUE, scale = TRUE)
+standard_VIX <- data.frame(standard_VIX)
+```
+
+## 1.1 OLS regression model
+
+```{r cars, echo=TRUE, include=TRUE}
+options(width = 100)
+set.seed(1004997943)
+OLS.model <- lm(VIX ~ ., data = data.frame(standard_VIX))
+OLS.pval <- summary(OLS.model)$coefficients[,4]
+# Filter out the statistically insignificant coefficients, using p-value
+sig.pval <- OLS.pval < 0.05; 
+# Summary Statistics of the OLS model
+summary(OLS.model)
+# Variance inflation factor (VIF) to detect multicollinearity 
+vif.OLS <- vif(OLS.model)
+# VIFs exceeding 4 
+length(vif.OLS[vif.OLS > 4])
+# VIFs exceeding 10
+length(vif.OLS[vif.OLS > 10])
+sig.pval
+sum(sig.pval)
+```
+
+## 1.2 Ridge regression model
+
+```{r cv, echo=TRUE, include=TRUE}
+set.seed(1004997943)
+x <- model.matrix(VIX ~ ., data=standard_VIX)[, -1]
+y <- standard_VIX$VIX
+#  randomly choose a subset of numbers between 1 and n 
+# these can then be used as the indices for the training observations.
+train <- sample(1:nrow(standard_VIX), nrow(standard_VIX) / 2)
+test <- (-train)
+y.test <- y[test]
+
+cv.ridge.out <- cv.glmnet(x, y, type.measure="mse", standardize=FALSE, 
+                          alpha=0, family="gaussian", 
+                          nfolds = 5, nlambda = 200)
+par(mfrow=c(1,2))
+plot(cv.ridge.out)
+abline( h = cv.ridge.out$cvup[cv.ridge.out$index[1]], lty = 4 )
+
+bestlam_ridge <- cv.ridge.out$lambda.min; bestlam_ridge
+secbestlam_ridge <- cv.ridge.out$lambda.1se; secbestlam_ridge
+
+set.seed(1004997943)
+ridge.mod <- glmnet(x, y, alpha = 0, standardize=FALSE)
+plot(ridge.mod, xvar = 'lambda')
+# careful to use the log here and below
+abline(v = log(cv.ridge.out$lambda.min), lty = 3) 
+abline(v = log(cv.ridge.out$lambda.1se), lty = 3)
+
+predictions_ridge <- glmnet(x, y, alpha = 0, lambda = secbestlam_ridge, standardize=FALSE) %>%
+predict(x) %>% as.vector()
+# Model performance metrics
+RMSE_enet = RMSE(predictions_ridge, y)
+RMSE_enet
+# Here we see that only 1 of the 46 coefficient estimates are exactly zero (Or extremely close). 
+# So the ridge model with Lambda chosen by cross-validation contains almost all of its original variables.
+ridge.coef <- predict(ridge.mod, type = "coefficients", s = secbestlam_ridge)[1:46, ]
+filter.coef.r <- ridge.coef[abs(ridge.coef) >= 0.0001];filter.coef.r
+length(filter.coef.r)
+
+# Further filtering 
+sig.coef.r <- ridge.coef[abs(ridge.coef) >= 0.01];sig.coef.r
+length(sig.coef.r)
+
+# Further filtering 
+sig.coef.r <- ridge.coef[abs(ridge.coef) >= 0.033];sig.coef.r
+length(sig.coef.r)
+```
+
+## 1.3 LASSO
+
+```{r lasso, echo=TRUE, include=TRUE}
+set.seed(1004997943)
+cv.lasso.out <- cv.glmnet(x, y,type.measure="mse", standardize=FALSE,     
+                          alpha=1, family="gaussian", 
+                          nfolds = 5, nlambda = 200)
+
+par(mfrow=c(1,2))
+plot(cv.lasso.out)
+abline( h = cv.lasso.out$cvup[cv.lasso.out$index[1]], lty = 4 )
+
+bestlam_lasso <- cv.lasso.out$lambda.min; bestlam_lasso
+secbestlam_lasso <- cv.lasso.out$lambda.1se; secbestlam_lasso
+
+set.seed(1004997943)
+lasso.mod <- glmnet(x, y, alpha = 1, standardize=FALSE)
+plot(lasso.mod, xvar = 'lambda')
+# careful to use the log here and below
+abline(v = log(cv.lasso.out$lambda.min), lty = 3) 
+abline(v = log(cv.lasso.out$lambda.1se), lty = 3)
+
+predictions_lasso <- glmnet(x, y, alpha = 1, lambda = bestlam_lasso, standardize=FALSE) %>%
+predict(x) %>% as.vector()
+# Model performance metrics
+RMSE_enet = RMSE(predictions_lasso, y)
+RMSE_enet
+
+# Here we see that 22 of the 46 coefficient estimates are exactly zero (Or extremely close). 
+# So the lasso model with Lambda chosen by cross-validation contains only eleven variables.
+lasso.coef <- predict(lasso.mod, type = "coefficients", s = bestlam_lasso)[1:46, ]
+filter.coef.l <- lasso.coef[abs(lasso.coef) >= 0.0001];filter.coef.l
+length(filter.coef.l)
+
+# Further filtering 
+sig.coef.l <- lasso.coef[abs(lasso.coef) >= 0.05];sig.coef.l
+length(sig.coef.l)
+
+```
+
+## 1.4 Elastic Net regression
+
+```{r elastic, echo=TRUE, include=TRUE}
+set.seed(1004997943)
+# prepare training scheme, choose repeated cv for more accuracy
+control <- trainControl(method="repeatedcv", number=10, repeats=10)
+# train the model
+en.model <- train(VIX ~ ., data=standard_VIX, method="glmnet", trControl=control,tuneLength = 25)
+optim.alpha <- en.model$bestTune[1]; optim.lambda <- en.model$bestTune[2]
+
+en.out <- glmnet(x, y, alpha = optim.alpha, lambda = optim.lambda, standardize = FALSE)
+en.coef <- predict(en.out, type="coefficients")[1:46, ]
+filter.coef.en <- en.coef[abs(en.coef) >= 0.0001];filter.coef.en
+length(filter.coef.en)
+# Further filtering 
+sig.coef.en <- filter.coef.en[abs(filter.coef.en) >= 0.05];sig.coef.en
+length(sig.coef.en)
+```
+
+## Segment 1: 1990-01 to 1998-06
+
+```{r phase 2 9001, echo=TRUE, include=TRUE}
+# Use filter and dyplyr to partition the data
+seg1 <- data %>% filter(between(data$Date, ('1990-01'), ('1998-06')))
+# Date category will be in exclusion list (needs all data to be numerical)
+drop_out <- c("Date")
+# dropping all the names in exclusion list
+seg1_data = seg1[, !names(data) %in% drop_out]
+seg1_standard <- scale(seg1_data, center = TRUE, scale = TRUE)
+# Turn seg1 standardized data from matrix to data frame
+seg1_standard <- data.frame(seg1_standard)
+# Setting the seed as student number
+set.seed(1004997943)
+
+x1 <- model.matrix(VIX ~ ., data=seg1_standard)[, -1]
+y1 <- seg1_standard$VIX
+# prepare training scheme, choose Leave-one-out
+control <- trainControl(method="LOOCV")
+# train the model
+model1 <- train(VIX ~ ., data=seg1_standard, method="glmnet", trControl=control,tuneLength = 25)
+optim.alpha1 <- model1$bestTune[1]; optim.lambda1 <- model1$bestTune[2]
+one.out <- glmnet(x1, y1, alpha = optim.alpha1, lambda = optim.lambda1, standardize = FALSE)
+one.coef <- predict(one.out, type="coefficients")[1:46, ]
+filter.one.coef <- one.coef[abs(one.coef) >= 0.0001];filter.one.coef
+length(filter.one.coef)
+sig.one <- filter.one.coef[abs(filter.one.coef) >= 0.05];sig.one
+length(sig.one)
+```
+
+## Segment 2: 1998-07 to 2003-03
+
+```{r phase 2 9807, echo=TRUE, include=TRUE}
+# Use filter and dyplyr to partition the data
+seg2 <- data %>% filter(between(data$Date, ('1998-07'), ('2003-03')))
+# Date category will be in exclusion list (needs all data to be numerical)
+drop_out <- c("Date")
+# dropping all the names in exclusion list
+seg2_data = seg2[, !names(data) %in% drop_out]
+seg2_standard <- scale(seg2_data, center = TRUE, scale = TRUE)
+# Turn seg1 standardized data from matrix to data frame
+seg2_standard <- data.frame(seg2_standard)
+# Setting the seed as student number
+set.seed(1004997943)
+
+x2 <- model.matrix(VIX ~ ., data=seg2_standard)[, -1]
+y2 <- seg2_standard$VIX
+# prepare training scheme, choose Leave-one-out
+control <- trainControl(method="LOOCV")
+# train the model
+model2 <- train(VIX ~ ., data=seg2_standard, method="glmnet", trControl=control,tuneLength = 25)
+optim.alpha2 <- model2$bestTune[1]; optim.lambda2 <- model2$bestTune[2]
+two.out <- glmnet(x2, y2, alpha = optim.alpha2, lambda = optim.lambda2, standardize = FALSE)
+two.coef <- predict(two.out, type="coefficients")[1:46, ]
+filter.two.coef <- two.coef[abs(two.coef) >= 0.0001];filter.two.coef
+length(filter.two.coef)
+sig.two <- filter.two.coef[abs(filter.two.coef) >= 0.05];sig.two
+length(sig.two)
+```
+
+## Segment 3: 2003-04 to 2007-12
+
+```{r phase 2 0304, echo=TRUE, include=TRUE}
+# Use filter and dyplyr to partition the data
+seg3 <- data %>% filter(between(data$Date, ('2003-04'), ('2007-12')))
+# Date category will be in exclusion list (needs all data to be numerical)
+drop_out <- c("Date")
+# dropping all the names in exclusion list
+seg3_data = seg3[, !names(data) %in% drop_out]
+seg3_standard <- scale(seg3_data, center = TRUE, scale = TRUE)
+# Turn seg1 standardized data from matrix to data frame
+seg3_standard <- data.frame(seg3_standard)
+# Setting the seed as student number
+set.seed(1004997943)
+
+x3 <- model.matrix(VIX ~ ., data=seg3_standard)[, -1]
+y3 <- seg3_standard$VIX
+# prepare training scheme, choose Leave-one-out
+control <- trainControl(method="LOOCV")
+# train the model
+model3 <- train(VIX ~ ., data=seg3_standard, method="glmnet", trControl=control,tuneLength = 25)
+optim.alpha3 <- model3$bestTune[1]; optim.lambda3 <- model3$bestTune[2]
+three.out <- glmnet(x3, y3, alpha = optim.alpha3, lambda = optim.lambda3, standardize = FALSE)
+three.coef <- predict(three.out, type="coefficients")[1:46, ]
+filter.three.coef <- three.coef[abs(three.coef) >= 0.0001];filter.three.coef
+length(filter.three.coef)
+sig.three <- filter.three.coef[abs(filter.three.coef) >= 0.05];sig.three
+length(sig.three)
+```
+
+## Segment 4: 2008-01 to 2009-09
+
+```{r phase 2 0801, echo=TRUE, include=TRUE}
+# Use filter and dyplyr to partition the data
+seg4 <- data %>% filter(between(data$Date, ('2008-01'), ('2009-09')))
+# Date category will be in exclusion list (needs all data to be numerical)
+drop_out <- c("Date")
+# dropping all the names in exclusion list
+seg4_data = seg4[, !names(data) %in% drop_out]
+seg4_standard <- scale(seg4_data, center = TRUE, scale = TRUE)
+# Turn seg1 standardized data from matrix to data frame
+seg4_standard <- data.frame(seg4_standard)
+# Setting the seed as student number
+set.seed(1004997943)
+
+x4 <- model.matrix(VIX ~ ., data=seg4_standard)[, -1]
+y4 <- seg4_standard$VIX
+# prepare training scheme, choose Leave-one-out
+control <- trainControl(method="LOOCV")
+# train the model
+model4 <- train(VIX ~ ., data=seg4_standard, method="glmnet", trControl=control,tuneLength = 25)
+optim.alpha4 <- model4$bestTune[1]; optim.lambda4 <- model4$bestTune[2]
+four.out <- glmnet(x4, y4, alpha = optim.alpha4, lambda = optim.lambda4, standardize = FALSE)
+four.coef <- predict(four.out, type="coefficients")[1:46, ]
+filter.four.coef <- four.coef[abs(four.coef) >= 0.0001];filter.four.coef
+length(filter.four.coef)
+sig.four <- filter.four.coef[abs(filter.four.coef) >= 0.05];sig.four
+length(sig.four)
+```
+
+## Segment 5: 2009-10 to 2019-12
+
+```{r phase 2 0910, echo=TRUE, include=TRUE}
+# Use filter and dyplyr to partition the data
+seg5 <- data %>% filter(between(data$Date, ('2009-10'), ('2019-12')))
+# Date category will be in exclusion list (needs all data to be numerical)
+drop_out <- c("Date")
+# dropping all the names in exclusion list
+seg5_data = seg5[, !names(data) %in% drop_out]
+seg5_standard <- scale(seg5_data, center = TRUE, scale = TRUE)
+# Turn seg1 standardized data from matrix to data frame
+seg5_standard <- data.frame(seg5_standard)
+# Setting the seed as student number
+set.seed(1004997943)
+
+x5 <- model.matrix(VIX ~ ., data=seg5_standard)[, -1]
+y5 <- seg5_standard$VIX
+# prepare training scheme, choose Leave-one-out
+control <- trainControl(method="LOOCV")
+# train the model
+model5 <- train(VIX ~ ., data=seg5_standard, method="glmnet", trControl=control,tuneLength = 25)
+optim.alpha5 <- model5$bestTune[1]; optim.lambda5 <- model5$bestTune[2]
+five.out <- glmnet(x5, y5, alpha = optim.alpha5, lambda = optim.lambda5, standardize = FALSE)
+five.coef <- predict(five.out, type="coefficients")[1:46, ]
+filter.five.coef <- five.coef[abs(five.coef) >= 0.0001];filter.five.coef
+length(filter.five.coef)
+sig.five <- filter.five.coef[abs(filter.five.coef) >= 0.05];sig.five
+length(sig.five)
+```
+
+## Segment 6: 2020-01 to 2022-12
+
+```{r phase 2 2001, echo=TRUE, include=TRUE}
+# Use filter and dyplyr to partition the data
+seg6 <- data %>% filter(between(data$Date, ('2020-01'), ('2022-12')))
+# Date category will be in exclusion list (needs all data to be numerical)
+drop_out <- c("Date")
+# dropping all the names in exclusion list
+seg6_data = seg6[, !names(data) %in% drop_out]
+seg6_standard <- scale(seg6_data, center = TRUE, scale = TRUE)
+
+# Turn seg1 standardized data from matrix to data frame
+seg6_standard <- data.frame(seg6_standard)
+# Intellectual Property Policy EMV Tracker have all zeros in this segment
+# so standardize will results in one of the columns have all NaN values
+# we need to fix that here manually
+seg6_standard <- seg6_standard %>% mutate(Intellectual.Property.Policy.EMV.Tracker = ifelse(is.na(Intellectual.Property.Policy.EMV.Tracker), 0, Intellectual.Property.Policy.EMV.Tracker))
+# Setting the seed as student number
+set.seed(1004997943)
+
+x6 <- model.matrix(VIX ~ ., data=seg6_standard)[, -1]
+y6 <- seg6_standard$VIX
+# prepare training scheme, choose Leave-one-out
+control <- trainControl(method="LOOCV")
+# train the model
+model6 <- train(VIX~., data=seg6_standard, method="glmnet", trControl=control,tuneLength = 25)
+optim.alpha6 <- model6$bestTune[1]; optim.lambda6 <- model6$bestTune[2]
+six.out <- glmnet(x6, y6, alpha = optim.alpha6, lambda = optim.lambda6, standardize = FALSE)
+
+six.coef <- predict(six.out, type="coefficients")[1:46, ]
+filter.six.coef <- six.coef[abs(six.coef) >= 0.0001];filter.six.coef
+length(filter.six.coef)
+sig.six <- filter.six.coef[abs(filter.six.coef) >= 0.05];sig.six
+length(sig.six)
+
+```
+# Reference 
+
+## 1 
+Policy News and Stock Market Volatility: Scott R. Baker,Nicholas Bloom, Steven J. Davis and Kyle Kost

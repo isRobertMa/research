@@ -1,0 +1,221 @@
+---
+output: 
+  pdf_document:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: pdflatex
+    template: svm-latex-ms.tex
+title: "Proportion of drivers who do not stop at certain stop sign on UTM campus."
+author:
+- name: Lufei Liu, Hanshuo Ma, Yixiang Zang, Shuaiqi Chen
+- name: Boliang Sun, Tianyue Wang, Yiting Huang
+
+
+  
+  
+abstract: "\ \ It is common for drivers to disobey Traffic Laws from time to time. One of the example will be the public speeding on Highway 401. In this paper, we are focusing on the study of determining the proportion of drivers who do not stop at the sign between Outer Circle Rd and The Collegeway, and the relationship between the proportion of UTM drivers who did not stop at the stop sign and driver's gender, age, type of vehicle, and other aspects of UTM demographic. We additionally developed our sample sizes using the simple Random Sampling that are valid only beacause drawing samples from two-stage clusters are much more difficult to perform within a resonable boundry of effort. We use our methodology to determine which variable would result in the most obident driver or the criminally dangerous ones."
+
+keywords: "pandoc, r markdown, knitr"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+
+#geometry: margin=1in
+fontfamily: times
+#fontfamily: mathpazo
+#fontsize: 11.5pt
+#spacing: double
+
+biblio-style: apsr
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r Library Calls, include=FALSE}
+library(tinytex)
+library(knitr)
+library(ggplot2)
+library(readxl)
+library(mosaic)
+library(tidyverse)
+library(knitr)
+library(dplyr)
+```
+
+
+
+# \textit{\textbf{\large 1. Introduction}}
+
+\ \ \ \ \ It is natural for drivers to forget, or even ignore Traffic Laws completely when they find themselves roaming freely on the road without Law enforcement's intervention. A prominent example is that when Ontario government raises the highway speed limit permanently to 100km/h, majority of drivers just thought, "Oh great, now I can drive with exactly the same speed as I always do".    
+
+Therefore, with this common behavior among the drivers, we would like to conduct this researcher to find out the true population proportion of all UTM drivers who did not stop at the stop sign. Once we located our data frame and settled the variables of interest, we would like to know that if there are any factors could impact driver's behavior. In our data set, we recorded all the drivers in 6 categories that we would expect to find a decreasing or increasing trend in the proportion within each group. These variables are: Gender, Age, Number of people within the vehicle, Consistency of the driving, Type of chicle, and The driver's stop status. 
+
+Variables  | Definition
+------------- | -------------
+Gender 0 | Appear to be male
+Gender 1 | Appear to be female
+Gender 2 | Assume gender neutrality
+Age 0 | Drivers assume as students 
+Age 1 | Drivers are significantly older, possibly faculties
+Passengers 0 | Driver is alone
+Passengers 1 | Driver is carrying more than one passengers
+Consistency 0 | Driving consistency is ideal[^1]
+Consistency 1 | Driving consistency is not ideal
+Type of car 0 | SUV
+Type of car 1 | Sedan
+Type of car 2| Other vehicles[^2]
+Complete Stop 0 | The driver did not stop at the stop sign
+Complete Stop 1 | The driver did stop a the stop sign
+
+
+[^1]: The ideal consistency represent the drivers will not come to an complete stop before final stop at the intersection. (e.g. If the drivers line up, and only slow down before the intersection, and none of them come to a complete stop prior to the final stop, this will be counted as an ideal consistency of driving.)
+[^2]: Include, Truck, Van, Hatchback, and Semi-load truck, etc. 
+
+# \textit{\textbf{1.1 Sample Selection}}
+
+\ \ \ \ \ Noted, in the category "Complete stops" we only collected data under the circumstances that drivers are free to choose whether to Stop or not stop(e.g. None of the drivers in the sample are forced to a complete stop before the intersection because of oncoming traffic or pedestrians crossing the street). 
+
+Based on the conducted pilot run we can assume the population proportion will be the point estimator of the pilot data set ${\hat p =  \frac{29}{49} = 0.59}$. Thus, ${p} = 0.59$. Also from the pilot study, we obtained $B = 0.1421$.
+
+For our study, of year 2022 we are looking at the UTM campus that has a population size of people $N^{people} = 20750$. With a conservative assumption, the UTM campus that at least has a population size of drivers $N^{drivers} = 10000$. 
+
+In order to estimate $p$, we need to determine the sample size for approximate 95% with a boundary of error of estimation where $B = 0.1402$. We are also sampling using SRS Without replacement. With the knowledge of assuming ${p} = 0.5$, the computation is as follows: 
+
+$$
+n = \frac{N^{drivers}pq}{(N^{drivers} - 1)D + pq} = \frac{10000 \cdot 0.59 \cdot 0.41}{(9999)\frac{0.1421^2}{4} + 0.59\cdot0.41} = \frac{2419}{50.7337} = 47.680 \approx 48
+$$
+The required sample size will be 48. Exclude the pilot run we have 514 samples, well above the required sample size. \
+
+# \textit{\textbf{\large Methodogy}}
+
+\ \ \ \ \ Because of the geographic location of our sampling frame, there is a preference among all UTM drivers of entering the campus. Hence, there is a selection bias within the collected data set.
+
+# \textit{\textbf{1.2.1 Main Hypothesis Test}}
+
+\ \ \ \ \ For the category of Complete Stop, we consider the following hypotheses:
+$$H_{o}: p = 0.59 \textrm{ VS } H_{a}: p > 0.59$$ 
+The above statement means that we are testing, whether the true proportion of drivers in UTM who did not stop at the stop sign exceeds 0.59. 
+
+For our main hypothesis testing, we apply one-sided z-test with a 5% significance level finding if true population proportion of all UTM drivers who did not stop at the stop sign greater than 0.59. 
+
+
+# \textit{\textbf{1.2.2 Second Hypothesis Test}}
+
+\ \ \ \ \ Regarding the all 5 categories of driving status, our goal is to determine whether these variables can affect the probability of a driver stopping at the stop sign. 
+
+$$H_{o}: p_{young} = p_{old} = p_{female} = \cdot\cdot\cdot = \ p_{ideal}\ \textrm{ VS } \ H_{a}: p_{young} \neq \cdot\cdot\cdot \neq \ p_{ideal}$$ 
+
+We apply Chi-square independence test across all variables to determine if there is decreasing or increasing trend in the proportion within each group.
+
+# \textit{\textbf{1.2.2 Third Hypothesis Test}}
+
+\ \ \ \ \ However, with observation of sample estimates across of all ten variables, there is one particular variables stands out to us. 
+
+Regarding the variable consistency of driving, our goal is to determine whether the variable consistency of driving can affect the probability of a driver stopping at the stop sign. For null hypotheses, we assume that the consistency of driving does not affect the population proportion of all UMT driver's stop at the stop sign. 
+
+$$H_{o}: p_{consistency} = p_{stop} \textrm{ VS } H_{a}: p_{consistency} \neq p_{stop}$$ 
+We also apply Chi-square independence test here. See if there is a dependency of population proportion of all UTM drivers who have non-ideal consistency of driving and a increasing trend of population proportion of all UTM drivers who would stop at a stop sign.
+
+
+# \textit{\textbf{\large Result:}}
+
+\ \ \ \ \ Here we have all the data analyzed and processed.For more specific R code and Formula we used, please check Appendix for further information. 
+
+# \textit{\textbf{2.1 The Confidence Interval of True population propotion }}
+
+\ \ \ \ \ The point estimator $\hat p$= 0.651751 , our test-statistics is $\chi^2=7.8492$ with $df=1$ with $p-value=0.002542$.  If we wish to calculate the Z-score ,then $Z=2.801642$. With 5% significance level, since $0.002542<0.05$, $p_value<\alpha$. Hence, we will reject the null hypothesis. We have sufficient evidence to conclude that the population proportion of all UTM drivers who did not stop at the stop sign is greater than $0.59$.
+
+# \textit{\textbf{2.2 Using Chi-square test the independece between twelve variables }}
+
+\ \ \ \ \ The p-value of Chi-square independence test of all twelve variables is $0.09503$. The results are close, if our significance level would be a bit sloppy, (e.g. $10$% significance level), then we might have rejected the null hypothesis. However, in this case with $5$% significance level the p-value is still to large to reject. Therefore we fail to reject the null hypothesis, hence we conclude there isn't sufficient evidence to suggest that, with all the variables combined, there would be an impact the population proportion of all UTM drivers who did not stop at the stop sign. 
+
+Nonetheless, with close observation, we notice there is a category that have much lower sample estimates than all the other variables. $p_{8}=0.4516129$. That variable is Non-ideal consistency of driving. Therefore, we deiced to pull out the entire Consistency category, then run the whole independence test again without them. And the results are as expected, the p-value for Chi-square independence test for all the variables except Consistency of Driving is $0.8329$, incredibly large. 
+
+By now, it's clear for us to investigate the category "Consistency of driving"  against the sample proportion of UTM drivers who did not stop stop sign. Hence come with the third hypothesis test. 
+
+# \textit{\textbf{2.3 Using Chi-square test the independece between the consistency of driving and complete stop}}
+
+\ \ \ \ \ The p-value of Chi-square independence test of "Consistency of driving" against "Complete stop" is $0.0007112$. Our test-statistics is $\chi^2=11.46$ with $df=1$. 
+With 5% significance level, since $0.0007112<0.05$, $p_value<\alpha$. Hence, we reject the null hypothesis. We have sufficient evidence to conclude that there is a relationship exist between the population proportion of all UTM drivers who did not stop at the stop sign and the population proportion of all UTM drivers who have an ideal consistency of driving.
+
+# \textit{\textbf{\large 3. Conclusion}}
+
+In our statistical results, we observed that all of the p-values are less than 0.05. And so we can reject the null hypothesis and conclude there is a relationship between age,gender,consistency,passengers under our categories of UTM drivers and the population proportion of all UTM drivers who did not stop at the stop sign which means that with all the variables combined, there would be an impact the population proportion of all UTM drivers who did not stop at the stop sign but except "Consistency", in another word, the data under "Consistency of driving" is an outlier, and it is convincing evidence that the distribution of the population proportion of all UTM drivers who have an ideal consistency of driving between the population proportion of all UTM drivers who did not stop at the stop sign.
+\newpage
+\textit{\textbf{Appendix:}}
+Introduce all the data sets 
+```{r Data sets, echo=FALSE, include=TRUE, Message=FALSE}
+# read all the data sets from excel files
+pilot <- read_xlsx("pilot.xlsx")
+complete <- read_xlsx("complete.xlsx")
+# Assign each variables 
+p_gender<-(pilot$`Gender(Appearance)`)
+p_age<-(pilot$Age)
+p_pass<-(pilot$Passengers)
+p_consis<-(pilot$Consistency)
+p_type<-(pilot$Type)
+p_stop<-(pilot$`Complete Stop`)
+
+c_gender<-(complete$`Gender(Appearance)`)
+c_age<-(complete$Age)
+c_pass<-(complete$Passengers)
+c_consis<-(complete$Consistency)
+c_type<-(complete$Type)
+c_stop<-(complete$`Complete Stop`)
+
+table(p_gender, p_stop)
+table(p_age, p_stop)
+table(p_pass, p_stop)
+table(p_consis, p_stop)
+table(p_type, p_stop)
+
+table(c_gender, c_stop)
+table(c_age, c_stop)
+table(c_pass, c_stop)
+table(c_consis, c_stop)
+table(c_type, c_stop)
+
+```
+Computation of the required sample size 
+```{r Sample size,  echo=TRUE, include=TRUE, Message=FALSE}
+
+# two-sided proportion test for the pilot run
+result <- prop.test(29,49,p=0.5, alternative = "two.sided", correct = TRUE)
+result$conf.int
+
+# Boundary value we extracted from the pilot run
+B =  (0.7268064 - 0.4425620 )/2
+B
+# Value of D 
+D = B^2/4
+D
+# Calculating the required Sample size 
+n = 10000*((0.59)*(0.41))/((9999)*D+(0.59)*(0.41))
+n
+```
+
+Computation of the test statistics for one-sided z-test
+$$
+Z=\frac{0.652-0.59}{\sqrt{\frac{0.59 \times 0.41 }{514}}}=\frac{0.062}{0.02169}=2.858 > Z=1.645\ (as \ \alpha = 0.05 )
+$$
+Chi-square independence test for second hypothesis test and third hypothesis test
+```{r test statics, echo=TRUE, include=TRUE, Message=FALSE}
+# Chi-square independence test for all the variables with 5% significance level 
+result_chi_multi <- prop.test(x=c(202,126,7,219,116,259,76,307,28,119,189,27),
+          n=c(302,202,10,345,169,396,118,452,62,195,278,41))
+result_chi_multi
+result_chi_multi$p.value
+
+# Chi-square independence test for all the variables except Consistency of Driving
+result_chi_less <- prop.test(x=c(202,126,7,219,116,259,76,119,189,27),
+          n=c(302,202,10,345,169,396,118,195,278,41))
+result_chi_less
+result_chi_less$p.value
+
+# Chi-square independence test for Consistency of Driving agaisnt Complete Stop
+result_chi_2 <- prop.test(x= c(307,28), n= c(452,62))
+result_chi_2
+result_chi_2$p.value
+```
