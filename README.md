@@ -17,6 +17,7 @@ needed to rebuild them. Standalone analysis code lives in its own repositories, 
 | [Literature review: stakeholder capitalism and ESG](eco440-literature-review/) | Corporate finance | 2025 |
 | [Exploring Information Theory](information-theory-poster/) | Information theory | — |
 | [Journal review: *The Lifetime Costs of Bad Health*](econ724-journal-review/) | Health & life-cycle | 2026 |
+| [Enhancing Bayesian Analyses: improper priors and cross-validation](rop-bayesian-priors/) | Bayesian statistics | 2024 |
 
 ---
 
@@ -109,3 +110,13 @@ into lifetime consumption, earnings and medical spending. A review of others' wo
 are reproduced from the paper under discussion and credited to its authors.
 
 *With Ching Yu Mok. ECON 724, Winter 2026.*
+
+## [Enhancing Bayesian Analyses: improper priors and cross-validation](rop-bayesian-priors/)
+
+Recovering a usable prior from an improper one by splitting the sample and updating in two
+stages — worked through single- and multi-parameter models, Jeffreys' prior and its extensions,
+and k-fold cross-validation.
+
+*STA399Y5Y Research Opportunity Program, University of Toronto Mississauga, Summer 2024.
+Supervisor: Prof. Luai Al Labadi. A group presentation; Hanshuo Ma presented the
+single-parameter, multi-parameter, Jeffreys' prior and posterior predictive sections.*
