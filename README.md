@@ -10,9 +10,12 @@ applied to central bank FX communication.
 
 | | |
 |---|---|
-| **Paper** | [Dynamic Bayesian Persuasion with Partial Commitment](Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.pdf) |
+| **Paper** | [Dynamic Bayesian Persuasion with Partial Commitment](Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.pdf) — final submitted version, 17 pp. |
 | **Slides** | [Presentation (13 slides)](Ma_Dynamic_Bayesian_Persuasion_Slides.pdf) |
-| **LaTeX source** | [Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.tex](Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.tex) |
+| **Extended manuscript** | [LaTeX source](Ma_Dynamic_Bayesian_Persuasion_Extended_Manuscript.tex) — a longer development of the same project, 28 pp., work in progress |
+
+The paper above is the version submitted and published. The extended manuscript is a
+separate, longer treatment that is still being revised; it is provided as LaTeX source only.
 
 ECON 701, Department of Economics, McMaster University.
 Instructor: Prof. Gajendran Raveendranathan. July 2026.
