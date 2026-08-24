@@ -7,7 +7,7 @@ needed to rebuild them. Standalone analysis code lives in its own repositories, 
 
 | Project | Field | Year |
 |---|---|---|
-| [Dynamic Bayesian Persuasion with Partial Commitment](Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.pdf) | Information design | 2026 |
+| [Dynamic Bayesian Persuasion with Partial Commitment](dynamic-bayesian-persuasion/) | Information design | 2026 |
 | [The Presidential Puzzle: the continuum](presidential-puzzle/) | Empirical finance | 2024 |
 | [Forecasting US equity market volatility](market-volatility-ml/) | Statistical learning | 2023 |
 | [Brownian motion and option pricing](brownian-motion-option-pricing/) | Stochastic calculus | 2023 |
@@ -16,7 +16,7 @@ needed to rebuild them. Standalone analysis code lives in its own repositories, 
 
 ---
 
-## Dynamic Bayesian Persuasion with Partial Commitment
+## [Dynamic Bayesian Persuasion with Partial Commitment](dynamic-bayesian-persuasion/)
 
 How much credibility does honest disclosure from a central bank actually need?
 A dynamic information design model in which a sender's commitment power is partial,
@@ -24,9 +24,9 @@ applied to central bank FX communication.
 
 | | |
 |---|---|
-| **Paper** | [Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.pdf](Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.pdf) — final submitted version, 19 pp., July 2026 |
-| **Slides** | [Presentation (13 slides)](Ma_Dynamic_Bayesian_Persuasion_Slides.pdf) |
-| **Extended manuscript** | [LaTeX source](Ma_Dynamic_Bayesian_Persuasion_Extended_Manuscript.tex) — a longer development of the same project, work in progress |
+| **Paper** | [Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.pdf](dynamic-bayesian-persuasion/Ma_Dynamic_Bayesian_Persuasion_Partial_Commitment.pdf) — final submitted version, 19 pp., July 2026 |
+| **Slides** | [Presentation (13 slides)](dynamic-bayesian-persuasion/Ma_Dynamic_Bayesian_Persuasion_Slides.pdf) |
+| **Extended manuscript** | [LaTeX source](dynamic-bayesian-persuasion/Ma_Dynamic_Bayesian_Persuasion_Extended_Manuscript.tex) — a longer development of the same project, work in progress |
 
 The paper is the version submitted for ECON 701. The extended manuscript is a separate, longer
 treatment of the same material, still being revised, and is provided as LaTeX source only —
