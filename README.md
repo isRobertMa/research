@@ -1,6 +1,6 @@
 # Research
 
-Working papers and presentations by **Hanshuo Ma**.
+Working papers and projects by **Hanshuo Ma**.
 
 ## Dynamic Bayesian Persuasion with Partial Commitment
 
@@ -20,3 +20,16 @@ source only — it is not the source of the paper above.
 
 ECON 701, Department of Economics, McMaster University.
 Instructor: Prof. Gajendran Raveendranathan. July 2026.
+
+## The Presidential Puzzle: the continuum
+
+An empirical revisit of Santa-Clara and Valkanov (2003), extending the sample to
+1934–2023 so that it spans the 2008 credit crisis and COVID-19.
+
+| | |
+|---|---|
+| **Paper** | [The Presidential Puzzle: the continuum](presidential-puzzle/Ma_Presidential_Puzzle_Continuum.pdf) — 14 pp. |
+| **Source, figures and data** | [`presidential-puzzle/`](presidential-puzzle/) |
+
+ECO421, Department of Mathematical & Computational Sciences,
+University of Toronto Mississauga.
