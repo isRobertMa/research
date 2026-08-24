@@ -9,22 +9,13 @@ Cycles and the Stock Market* (**Journal of Finance** 58(5)), extending the sampl
 | **Paper** | [Ma_Presidential_Puzzle_Continuum.pdf](Ma_Presidential_Puzzle_Continuum.pdf) — 14 pp. |
 | **LaTeX source** | [Ma_Presidential_Puzzle_Continuum.tex](Ma_Presidential_Puzzle_Continuum.tex) |
 | **Figures** | [`images/`](images/) — the four plots the source includes |
-| **Data** | [Presidential_Party_by_Month.csv](Presidential_Party_by_Month.csv) |
+| **R code and data** | [isRobertMa/Presidential_puzzle_continuum](https://github.com/isRobertMa/Presidential_puzzle_continuum) |
 
-## Data
-
-`Presidential_Party_by_Month.csv` is the party-by-month coding used throughout: one row per month
-from 1934-01 to 2023-12, with `Party` = `0` for Democrat and `1` for Republican.
-
-The return series themselves are **not** included, because they are licensed:
-
-- **3MTB** — 3-Month Treasury Bill Secondary Market Rate, from
-  [FRED](https://fred.stlouisfed.org/series/TB3MS) (public)
-- **VWP / EWP** — CRSP value-weighted and equal-weighted portfolios of the S&P 500 universe
-  (CRSP US Stock & Indexes, INDO 1000510 and 1000511) — **licensed, obtain via CRSP**
-
-Excess returns are formed against the T-bill benchmark: `Value Excess = VWP − 3MTB` and
-`Equal Excess = EWP − 3MTB`.
+The analysis behind this paper — excess returns, t-tests, OLS, ANOVA, ADF tests and ARIMA models,
+written in R — lives in its own repository:
+**[Presidential_puzzle_continuum](https://github.com/isRobertMa/Presidential_puzzle_continuum)**.
+This folder holds the write-up; that one holds the code that produced it, including the script
+that generates the four figures in `images/`.
 
 ## Rebuilding the PDF
 
@@ -36,7 +27,7 @@ pdflatex Ma_Presidential_Puzzle_Continuum.tex
 ```
 
 It requires `fourier`, `listings`, `lastpage`, `multirow`, `wrapfig`, and `fancyhdr` in addition
-to the usual `amsmath` / `graphicx` set.
+to the usual `amsmath` / `graphicx` set, plus `ucs` for `utf8x` and `utopia` for the Fourier fonts.
 
 ---
 

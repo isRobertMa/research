@@ -29,7 +29,8 @@ An empirical revisit of Santa-Clara and Valkanov (2003), extending the sample to
 | | |
 |---|---|
 | **Paper** | [The Presidential Puzzle: the continuum](presidential-puzzle/Ma_Presidential_Puzzle_Continuum.pdf) — 14 pp. |
-| **Source, figures and data** | [`presidential-puzzle/`](presidential-puzzle/) |
+| **Source and figures** | [`presidential-puzzle/`](presidential-puzzle/) |
+| **R analysis code** | [isRobertMa/Presidential_puzzle_continuum](https://github.com/isRobertMa/Presidential_puzzle_continuum) |
 
 ECO421, Department of Mathematical & Computational Sciences,
 University of Toronto Mississauga.
