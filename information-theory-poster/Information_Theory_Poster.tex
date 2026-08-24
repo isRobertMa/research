@@ -1,0 +1,306 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX poster template
+% Created by Nathaniel Johnston
+% August 2009
+% http://www.nathanieljohnston.com/2009/08/latex-poster-template/
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[final]{beamer}
+\usepackage[scale=1.24]{beamerposter}
+\usepackage{amsmath}
+\usepackage{graphicx}			% allows us to import images
+\usepackage{multirow}
+
+% Package added by Lucas
+\usepackage{enumitem}
+
+
+%-----------------------------------------------------------
+% Define the column width and poster size
+% To set effective sepwid, onecolwid and twocolwid values, first choose how many columns you want and how much separation you want between columns
+% The separation I chose is 0.024 and I want 4 columns
+% Then set onecolwid to be (1-(4+1)*0.024)/4 = 0.22
+% Set twocolwid to be 2*onecolwid + sepwid = 0.464
+%-----------------------------------------------------------
+
+\newlength{\sepwid}
+\newlength{\onecolwid}
+\newlength{\twocolwid}
+\newlength{\threecolwid}
+\setlength{\paperwidth}{48in}
+\setlength{\paperheight}{36in}
+\setlength{\sepwid}{0.0235 \paperwidth}
+\setlength{\onecolwid}{0.305 \paperwidth}
+\setlength{\twocolwid}{0.464 \paperwidth}
+\setlength{\topmargin}{-1.5in}
+\usetheme{confposter}
+\usepackage{exscale}
+
+\setlist[enumerate,1]{label=[\arabic*], start=0}
+
+%-----------------------------------------------------------
+% The next part fixes a problem with figure numbering. Thanks Nishan!
+% When including a figure in your poster, be sure that the commands are typed in the following order:
+% \begin{figure}
+% \includegraphics[...]{...}
+% \caption{...}
+% \end{figure}
+% That is, put the \caption after the \includegraphics
+%-----------------------------------------------------------
+
+\usecaptiontemplate{
+\small
+\structure{\insertcaptionname~\insertcaptionnumber:}
+\insertcaption}
+
+%-----------------------------------------------------------
+% Define colours (see beamerthemeconfposter.sty to change these colour definitions)
+%-----------------------------------------------------------
+
+\setbeamercolor{block title}{fg=ngreen,bg=white}
+\setbeamercolor{block body}{fg=black,bg=white}
+\setbeamercolor{block alerted title}{fg=white,bg=dblue!70}
+\setbeamercolor{block alerted body}{fg=black,bg=dblue!10}
+
+%-----------------------------------------------------------
+% Name and authors of poster/paper/research
+%-----------------------------------------------------------
+
+\title{Exploring Information Theory: Entropy, KL Divergence, Properties, Computations, and Applications in Statistics}
+\author{Luai Al Labadi, Zhirui Chu, Nevena Ciganovic, Hanshuo Ma, Lucas Albert Noritomi-Hartwig, Jingwen Shi, Ying Xu}
+\institute{Department of Mathematical and Computational Science, University of Toronto Mississauga}
+
+%-----------------------------------------------------------
+% Start the poster itself
+%-----------------------------------------------------------
+
+\begin{document}
+\begin{frame}[t]
+  \begin{columns}[t]												% the [t] option aligns the column's content at the top
+    \begin{column}{\sepwid}\end{column}			% empty spacer column
+    \begin{column}{\onecolwid}
+      \begin{block}{Abstract}
+        This poster aims to provide a comprehensive overview of key concepts in information theory, focusing on entropy, Kullback-Leibler (KL) divergence, their properties, computational methods, and applications in statistics.
+        
+      \end{block}
+      \vskip2ex
+      \begin{block}{Introduction to Information Theory}
+        Information theory originally studies the transmission, processing, extraction, and utilization of information. In the case of communication of information over a noisy channel, the information is thought of as possible messages. The goal is to send, receive, and reconstruct these messages with a low probability of error, in spite of the channel noise. Information theory now has many relationships with other fields, including economics, computer science, communication theory, statistics, and mathematics. A key measure in information theory is entropy (Cover and Thomas, 1991). 
+      \end{block}
+
+      \begin{block}{Entropy}
+        Entropy is a notion taken from thermodynamics, where it describes the uncertainty in the movement of gas particles. In statistics, entropy is considered as a measure of the uncertainty of a random variable.  
+      \end{block}
+      \vskip2ex
+      {\small{
+      \begin{alertblock}{Shannon Entropy}
+        \begin{align*}
+            H(X) = H(f)=-\mathbb{E}[\ln(f(X))] &= 
+            \begin{cases}
+            - \sum_{x \in X}f(x)\ln(f(x)), & \text{if }f(x)\text{ is discrete}\\
+            - \int f(x)\ln(f(x))dx, & \text{if }f(x)\text{ is continuous}
+            \end{cases}
+        \end{align*}
+      \end{alertblock}}}
+      
+        \begin{block}{{Joint and Conditional Entropy}}
+        For two discrete random variables, $X$ and $Y$, with a joint distribution, $f(x,y)$:
+            \begin{itemize}
+                \item The {\it joint entropy}, $H(X,Y)$, is given by
+                \begin{displaymath}
+                    H(X, Y) = -\sum_{x\in X}\sum_{y \in Y}f(x,y)\ln(f(x,y)).
+                \end{displaymath}
+                \item The {\it conditional entropy} of $Y$ given $X$ is 
+                    \begin{displaymath}
+                        H(Y|X) = - \sum_{x\in X , y\in Y}f(x,y)\ln \left(\frac{f(x,y)}{f(x)}\right). 
+                    \end{displaymath}
+                    \item \textbf{Main Properties:} 
+                   \begin{itemize} 
+                  % \item  If Y is completely dependent on X, $H(Y|X) = 0.$
+                \item $H(Y|X)=H(Y)$ if and only if $X$ and $Y$ are independent random variables. 
+                \item {\it Chain Rule:} $H(X,Y) = H(X) + H(Y|X)$
+                    
+                \end{itemize} 
+            \end{itemize}    
+        \end{block}
+    \end{column}
+       \begin{column}{\sepwid}\end{column}		% empty spacer column 
+    \begin{column}{\onecolwid}
+    
+    \begin{block}{Common Entropies}
+         \begin{tabular}{ |p{12cm}||p{12cm}|p{12cm}|  }
+    \hline
+    \textbf{Distribution}& \textbf{PDF}: $f(x)$& \textbf{Entropy}: $H(x)$\\
+    \hline
+    Normal Distribution & ${\frac{1}{\sigma \sqrt{2\pi}}e^{-\frac{(x-\pi)^2}{2\sigma ^2}}}$    & $\ln (\sigma\sqrt{2\pi e})$\\
+    Exponential&   $\xi e^{-\xi x}$  & $1-\ln\xi$\\
+    Uniform&$\frac{1}{b-a}$ & $\ln(b-a)$\\
+    
+    \hline   
+   \end{tabular}
+\end{block}
+        
+        \begin{block}{KL Divergence and Cross Entropy}
+            KL divergence is a type of statistical distance, a measure of how one probability distribution, $f$, is different from a second reference probability distribution, $g$.
+            \begin{displaymath}
+                D_{KL}(f||g) = 
+                \begin{cases}
+                \sum_{x \in \chi} f(x)\ln\left(\frac{f(x)}{g(x)}\right), & \text{if } f(x) \text{ and } g(x) \text{ are discrete}\\
+                \int f(x)\ln\left(\frac{f(x)}{g(x)}\right)dx, & \text{if } f(x) \text{ and } g(x)  \text{are continuous} 
+                \end{cases}
+            \end{displaymath}
+            It is known that $D_{KL}(f||g) \ge 0$, where $D_{KL}(f||g) = 0$ if and only if $f=g$ almost surely. This property makes it a useful tool in many areas of machine learning and information
+theory, such as hypothesis testing, model selection, and clustering. The cross-entropy is an information measure that can be regarded as an error metric between two distributions:
+            \begin{displaymath}
+                   S(f,g) = D_{KL}(f||g) + H(f)
+            \end{displaymath}
+            
+            % It is used to quantify a ``difference'' between two probability distributions.
+            %It is used to compare two probability distributions.
+        \end{block}
+
+        \begin{block}{Measures of Sample Entropy}
+      In most practical scenarios, the true PDF $f$ is unknown, and hence, we need to estimate the entropy from the available data, which can be a challenging task. Vasicek (1976)  derived the expression for  $H(X)$ in terms of the inverse of the distribution function $F$, given by
+\begin{equation*}
+H(X)=\int_{0}^{1} \log \left(\frac{d}{dt}F^{-1}(t)\right) dt. \label{1}
+\end{equation*}
+If $x_{1},\ldots,x_{n}$ is a sample from  $F$, then an estimator of $H(X)$ is given by Vasicek's estimator, introduced in 1976 and later studied by Ebrahimi et al. in 1994:
+        \begin{equation*}
+          H(m,n) = \frac{1}{n}\sum_{i=1}^{n}\ln\frac{x_{i+m}-x_{i-m}}{c_im/n}, \label{3}
+        \end{equation*}
+     where 
+        $$
+        c_i=
+            \begin{cases}
+                1+\frac{i-1}{m}, & 1\leq i \leq m, \\
+                2, & m+1 \leq i \leq n-m ,\\
+                1+\frac{n-i}{m}, & n-m+1\leq i \leq n,
+            \end{cases}
+            % \begin{aligned}
+            % &1+\frac{i-1}{m},& 1\leq i \leq m, \\
+            % &2,&m+1 \leq i \leq n-m ,\\
+            % &1+\frac{n-i}{m}, &n-m+1\leq i \leq n,
+            % \end{aligned}
+        $$
+where $m$ is a positive integer smaller than $n/2$, and $X_{(1)}\le \cdots \le x_{(n)}$ are the order statistics of $x_{1}, \ldots, x_{n}$ with $x_{(i-m)}=x_{(1)}$ if $i\le m$ and $x_{(i+m)}=x_{(n)}$ if $i \ge n-m$.
+
+\smallskip
+
+How to choose $m$?  $m = \lfloor \sqrt{n} + 0.5 \rfloor$  (Al-Labadi et al., 2021). 
+        \end{block}   
+    \vskip2.5ex
+    \end{column}
+    \begin{column}{\sepwid}\end{column}			% empty spacer column
+    \begin{column}{\onecolwid}					  % create a three-column-wide column and then we will split it up later
+    
+    \begin{block}{}
+To assess the efficiency of the entropy estimator, we analyzed 5000 samples of sizes $n=20, 50, 100$ from both the standard normal and exponential distributions. The results, along with the corresponding mean squared errors, are presented in Tables 1 and 2.
+
+
+\bigskip
+        %Data: https://docs.google.com/spreadsheets/d/1AI_9zEtxSj6Ql9zHCNmugspDahSfU-fujlfprpFh_lc/edit?usp=sharing
+
+        \begin{table}[ht]
+        \centering
+        \begin{minipage}{0.45\textwidth}
+        \centering
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \multicolumn{5}{|c|}{Normal(0, 1)} \\
+        \hline
+        $n$ & $m$ & Exact & Est & MSE \\
+        \hline
+        20 & 4 & 1.4189 & 1.2555 & 0.0592 \\
+        50 & 7 & 1.4189 & 1.3522 & 0.0161 \\
+        100 & 10 & 1.4189 & 1.3931 & 0.0060 \\
+        \hline
+        \end{tabular}
+        \caption{Normal Distribution}
+        \end{minipage}
+        \hspace{0.05\textwidth}
+        \begin{minipage}{0.45\textwidth}
+        \centering
+        \begin{tabular}{|c|c|c|c|c|}
+        \hline
+        \multicolumn{5}{|c|}{Exp(1)} \\
+        \hline
+        $n$ & $m$ & Exact & Est & MSE \\
+        \hline
+        20 & 4 & 1.0000 & 0.9080 & 0.0699 \\
+        50 & 7 & 1.0000 & 0.9743 & 0.0237 \\
+        100 & 10 & 1.0000 & 0.9869 & 0.0112 \\
+        \hline
+        \end{tabular}
+        \caption{Exponential Distribution}
+        \end{minipage}
+        \end{table}
+        
+
+    \end{block}  
+
+    \begin{block}{Application}
+        One major application of the KL divergence is model cheeking. Assume we have $x_1, ..., x_n\sim F$ where $F$ is an unknown distribution. We want to test the null hypothesis $H_0:F = F_0$, where $F_0$ is a known distribution with PDF $f_0$. It can be shown that  $D_{KL}(f || f_0)$ may be estimated by
+        \begin{displaymath}
+            d=\widehat{D}_{KL}(f || f_0) = \hat{H}(X) - \hat{S}(f, f_0) = H(m,n) - \frac{1}{n}\sum_{i=1}^{n}\log f_0(x_{(i)}).
+        \end{displaymath}
+To calibrate the result, McCulloch proposed the following calibration function:    $q(k) = (1+(1-e^{-2f})^{1/2})/2$.
+        As $q$ approaches 0.5, the two distribution are more likely to be the same.
+As an example, we generated a sample of size $n=50$ from the standard normal distribution and considered different cases of $F_0$. The results are reported in Table 3. 
+
+\bigskip
+\begin{table}[H]
+\centering
+\begin{tabular}
+[c]{|c|l|l|}\hline
+$F_0$  & $\hat{d}$ & $q$ \\
+\hline
+$N(0,1)$& 0.0464& 0.6488  \\
+  \hline
+$N(3,1)$& 4.3019 &1.0000  \\
+  \hline
+${\rm t}_{1}$ &0.3222& 0.8446 \\
+  \hline
+\end{tabular}
+\caption{Model Checking}
+\end{table}%
+
+    \end{block}
+
+
+    \begin{block}{References}
+        % New bibliorgraphy
+        \small
+        \begin{enumerate} 
+            \item [[1]] Al-Labadi, L., Patel, V.,  Vakiloroayaei, K., and  Wan, C. (2021b). Kullback-Leibler divergence for Bayesian nonparametric model checking.  
+            \emph{Journal of the Korean Statistical Society}. https://doi.org/10.1007/s42952-020-00072-7
+            \item [[2]] Cover, T. M., and  Thomas, J. A. (1991).  \emph{Elements of Information Theory}, 2nd edition.  New York: John Wiley \& Sons, Inc.
+            \item  [[3]] Ebrahimi, N., Pflughoeft, K., and Soofi, 
+            E. S. (1994). Two measures of sample entropy. \emph{Statistics \& Probability Letters}, 20, 225-234.
+            
+            \item  [[4]] McCulloch, R. (1989). Local prior influence. {\it Journal of the American Statistical Association}, 84, 473-478.
+            
+            \item [[5]] Vasicek, O. (1976). A test for normality based on sample entropy. \emph{Journal of Royal Statistical Society B}, 38, 54-59.
+        \end{enumerate}
+
+        % Old bibliography
+        
+        % \begin{thebibliography}       
+        % \item {APVW2021b} Al-Labadi, L., Patel, V.,  Vakiloroayaei, K., and  Wan, C. (2021b). Kullback-Leibler divergence for Bayesian nonparametric model checking.  \emph{Journal of the Korean Statistical Society}. https://doi.org/10.1007/s42952-020-00072-7
+
+        % \item {CT1991} Cover, T. M., and  Thomas, J. A. (1991).  \emph{Elements of Information Theory}, 2nd edition.  New York: John Wiley \& Sons, Inc.
+
+        % \item {EPS1994} Ebrahimi, N., Pflughoeft, K., and Soofi, E. S. (1994). Two measures of sample entropy. \emph{Statistics \& Probability Letters}, 20, 225-234.
+
+        % \item {V1976} Vasicek, O. (1976). A test for normality based on sample entropy. \emph{Journal of Royal Statistical Society B}, {\bf 38}, 54-59.
+        % \end{thebibliography}
+    \end{block}
+
+    \vspace{1pt}
+
+    \textbf{Contact information:} lucas.noritomi@utoronto.ca
+
+      \vskip2.5ex
+    \end{column}
+ \end{columns}
+\end{frame}
+\end{document}

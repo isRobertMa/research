@@ -13,6 +13,10 @@ needed to rebuild them. Standalone analysis code lives in its own repositories, 
 | [Brownian motion and option pricing](brownian-motion-option-pricing/) | Stochastic calculus | 2023 |
 | [Oven temperature and chicken breast](experimental-design-chicken/) | Experimental design | 2023 |
 | [UTM drivers and a stop sign](survey-stop-sign/) | Survey sampling | 2022 |
+| [Bank Run: the downfall of First Republic Bank](eco349-bank-run/) | Money & banking | 2023 |
+| [Literature review: stakeholder capitalism and ESG](eco440-literature-review/) | Corporate finance | 2025 |
+| [Exploring Information Theory](information-theory-poster/) | Information theory | — |
+| [Journal review: *The Lifetime Costs of Bad Health*](econ724-journal-review/) | Health & life-cycle | 2026 |
 
 ---
 
@@ -73,3 +77,35 @@ driver and vehicle characteristics. Source only — the survey data did not surv
 
 *With Lufei Liu, Yixiang Zang, Shuaiqi Chen, Boliang Sun, Tianyue Wang and Yiting Huang.
 STA304, University of Toronto Mississauga, 2022.*
+
+## [Bank Run: the downfall of First Republic Bank](eco349-bank-run/)
+
+The collapse of First Republic Bank set against Silicon Valley Bank, read through the
+Diamond–Dybvig model. Price-history figures composed from Bloomberg terminal data.
+
+*ECO349H5 S — Money, Banking & Financial Markets, University of Toronto Mississauga.
+Instructor: Prof. Yingnan Zhao.*
+
+## [Literature review: stakeholder capitalism and ESG](eco440-literature-review/)
+
+A critical review of the stakeholder-capitalism model and ESG factor implementation,
+built around Brown & Cohen (2023).
+
+*ECO440: Corporate Finance, University of Toronto Mississauga.
+Instructor: Prof. Varouj A. Aivazian.*
+
+## [Exploring Information Theory](information-theory-poster/)
+
+A research poster on entropy and Kullback–Leibler divergence — properties, computation, and
+applications in statistics.
+
+*With Luai Al Labadi, Zhirui Chu, Nevena Ciganovic, Lucas Albert Noritomi-Hartwig, Jingwen Shi
+and Ying Xu. University of Toronto Mississauga.*
+
+## [Journal review: *The Lifetime Costs of Bad Health*](econ724-journal-review/)
+
+A presentation reviewing De Nardi, Pashchenko and Porapakkarm on how health shocks translate
+into lifetime consumption, earnings and medical spending. A review of others' work — the figures
+are reproduced from the paper under discussion and credited to its authors.
+
+*With Ching Yu Mok. ECON 724, Winter 2026.*
